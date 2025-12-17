@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Rpn\Operators;
 
-use InvalidArgumentException;
 use Override;
+use Rpn\Exceptions\InvalidOperatorArgumentException;
 use Rpn\Operands\Number;
 use Rpn\Operands\OperandInterface;
 
@@ -17,7 +17,7 @@ readonly class Factorial implements OperatorInterface
         $value = (int)$left->value();
 
         if ($value < 0) {
-            throw new InvalidArgumentException('Factorial is not defined for negative numbers.');
+            throw new InvalidOperatorArgumentException('Factorial is not defined for negative numbers.');
         }
 
         $result = 1;

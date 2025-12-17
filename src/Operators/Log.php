@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Rpn\Operators;
 
-use InvalidArgumentException;
 use Override;
+use Rpn\Exceptions\InvalidOperatorArgumentException;
 use Rpn\Operands\Number;
 use Rpn\Operands\OperandInterface;
 
@@ -19,7 +19,7 @@ readonly class Log implements OperatorInterface
         $value = $left->value();
 
         if ($value <= 0) {
-            throw new InvalidArgumentException("Logarithm undefined for non-positive numbers: $value");
+            throw new InvalidOperatorArgumentException("Logarithm undefined for non-positive numbers: $value");
         }
 
         return new Number(log($value));

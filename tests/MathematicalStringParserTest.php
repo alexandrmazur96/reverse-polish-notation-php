@@ -7,7 +7,7 @@ namespace Rpn\Tests;
 use Generator;
 use PHPUnit\Framework\Attributes\DataProvider;
 use Rpn\Expression;
-use Rpn\Parser\MathematicalStringParser;
+use Rpn\Parsers\MathematicalStringParser;
 
 final class MathematicalStringParserTest extends TestCase
 {

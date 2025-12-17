@@ -2,11 +2,12 @@
 
 declare(strict_types=1);
 
-namespace Rpn\Parser;
+namespace Rpn\Parsers;
 
 use Generator;
-use InvalidArgumentException;
 use Override;
+use Rpn\Exceptions\UnknownFunctionException;
+use Rpn\Exceptions\UnknownTokenException;
 use Rpn\Operands\Number;
 use Rpn\Operands\OperandInterface;
 use Rpn\Operators\Addition;
@@ -90,7 +91,7 @@ readonly class MathematicalStringParser implements ParserInterface
                     'pow' => new Power(),
                     'log' => new Log(),
                     'exp' => new Exp(),
-                    default => throw new InvalidArgumentException("Unknown function: $token")
+                    default => throw new UnknownFunctionException("Unknown function: $token")
                 };
                 $operatorsStack->push($op);
                 $isOperandExpected = true;
@@ -153,7 +154,7 @@ readonly class MathematicalStringParser implements ParserInterface
                 '√' => new Sqrt(),
                 '∛' => new CubeRoot(),
                 '∜' => new FourthRoot(),
-                default => throw new InvalidArgumentException("Unknown token: $token"),
+                default => throw new UnknownTokenException("Unknown token: $token"),
             };
 
             if ($token === '-' && $isOperandExpected) {
