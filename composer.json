@@ -36,5 +36,11 @@
         "allow-plugins": {
             "dealerdirect/phpcodesniffer-composer-installer": true
         }
+    },
+    "scripts": {
+        "test": "phpunit --colors=always",
+        "psalm": "psalm --show-info=true --no-cache",
+        "phpcs": "phpcs src/ tests/",
+        "lint": "parallel-lint src/ tests/"
     }
 }
