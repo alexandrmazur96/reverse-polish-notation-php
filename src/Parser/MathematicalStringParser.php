@@ -6,6 +6,7 @@ namespace Rpn\Parser;
 
 use Generator;
 use InvalidArgumentException;
+use Override;
 use Rpn\Operands\Number;
 use Rpn\Operands\OperandInterface;
 use Rpn\Operators\Addition;
@@ -66,6 +67,7 @@ readonly class MathematicalStringParser implements ParserInterface
     }
 
     /** @return Generator<int, OperandInterface|OperatorInterface, mixed, void> */
+    #[Override]
     public function parse(): iterable
     {
         /** @var SplStack<string|OperatorInterface> $operatorsStack */

@@ -18,7 +18,7 @@ final class MathematicalStringParserTest extends TestCase
         $this->assertEqualsWithDelta($expected, (new Expression(...$expressionParts))->evaluate(), 0.0001);
     }
 
-    /** @psalm-suppress PossiblyUnusedMethod */
+    /** @return Generator<string, array{0: string, 1: float}> */
     public static function mathStringsProvider(): Generator
     {
         // --- Basic Arithmetic ---

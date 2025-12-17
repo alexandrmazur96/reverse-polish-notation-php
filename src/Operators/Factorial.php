@@ -5,11 +5,13 @@ declare(strict_types=1);
 namespace Rpn\Operators;
 
 use InvalidArgumentException;
+use Override;
 use Rpn\Operands\Number;
 use Rpn\Operands\OperandInterface;
 
 readonly class Factorial implements OperatorInterface
 {
+    #[Override]
     public function apply(OperandInterface $left, OperandInterface $right): OperandInterface
     {
         $value = (int)$left->value();

@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Rpn\Operands;
 
+use Override;
+
 readonly class Number implements OperandInterface
 {
     /** @param float|int|numeric-string $value */
@@ -11,6 +13,7 @@ readonly class Number implements OperandInterface
     {
     }
 
+    #[Override]
     public function value(): float
     {
         return (float)$this->value;
