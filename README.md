@@ -36,9 +36,6 @@ composer require php-rpn/rpn
   - `∜` (fourth root)
 - ✅ **Proper operator associativity** handling
 - ✅ **Type-safe PHP 8.3+** with strict types
-- ✅ **Fully tested** with PHPUnit
-- ✅ **Static analysis** with Psalm
-- ✅ **Code quality** enforced by PHP CodeSniffer
 
 ## Usage
 
