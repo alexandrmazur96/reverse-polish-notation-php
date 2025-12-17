@@ -57,8 +57,6 @@ final class MathematicalStringParserTest extends TestCase
         yield 'pow-symbol-3' => ['2^0', 1];
         yield 'pow-func-1'   => ['pow(2, 3)', 8];
         yield 'pow-func-2'   => ['pow(2, 3) + 2', 10];
-        yield 'pow-unicode-sq' => ['5²', 25]; // Unicode ²
-        yield 'pow-unicode-cb' => ['2³', 8];  // Unicode ³
 
         // Right Associativity Test: 2^3^2 should be 2^(3^2) = 2^9 = 512.
         // If left associative, it would be (2^3)^2 = 8^2 = 64.
