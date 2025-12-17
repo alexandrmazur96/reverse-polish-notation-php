@@ -12,7 +12,6 @@ use function log;
 
 readonly class Log implements OperatorInterface
 {
-
     public function apply(OperandInterface $left, OperandInterface $right): OperandInterface
     {
         $value = $left->value();
