@@ -9,6 +9,6 @@ use Rpn\Operators\OperatorInterface;
 
 interface ParserInterface
 {
-    /** @return iterable<OperandInterface|OperatorInterface> */
+    /** @return iterable<int, OperandInterface|OperatorInterface> */
     public function parse(): iterable;
 }
