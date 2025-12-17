@@ -56,8 +56,8 @@ final class MathematicalStringParserTest extends TestCase
         yield 'pow-symbol-1' => ['2 ^ 3', 8];
         yield 'pow-symbol-2' => ['2^3', 8]; // Tight spacing
         yield 'pow-symbol-3' => ['2^0', 1];
-        yield 'pow-func-1'   => ['pow(2, 3)', 8];
-        yield 'pow-func-2'   => ['pow(2, 3) + 2', 10];
+        yield 'pow-func-1' => ['pow(2, 3)', 8];
+        yield 'pow-func-2' => ['pow(2, 3) + 2', 10];
 
         // Right Associativity Test: 2^3^2 should be 2^(3^2) = 2^9 = 512.
         // If left associative, it would be (2^3)^2 = 8^2 = 64.
@@ -68,11 +68,11 @@ final class MathematicalStringParserTest extends TestCase
         yield 'sqrt-func-2' => ['sqrt(16) + sqrt(9)', 7];
         yield 'sqrt-symbol-1' => ['√16', 4];
         yield 'sqrt-symbol-2' => ['√16 + √9', 7];
-        yield 'sqrt-complex'  => ['sqrt(pow(3, 2) + pow(4, 2))', 5]; // Pythagorean 3-4-5
+        yield 'sqrt-complex' => ['sqrt(pow(3, 2) + pow(4, 2))', 5]; // Pythagorean 3-4-5
 
         // --- Other Roots (∛, ∜) ---
         yield 'cuberoot-symbol' => ['∛8', 2];
-        yield 'cuberoot-neg'    => ['∛-8', -2]; // Assuming your CubeRoot op handles negatives
+        yield 'cuberoot-neg' => ['∛-8', -2];
         yield 'fourthroot-symbol' => ['∜16', 2];
 
         // --- Factorial (!) ---
@@ -89,10 +89,10 @@ final class MathematicalStringParserTest extends TestCase
         yield 'log-combo' => ['log(exp(2) * exp(3))', 5]; // ln(e^2 * e^3) = ln(e^5) = 5
 
         // --- Unary Minus Edge Cases ---
-        yield 'unary-pow-precedence' => ['-2^2', -4]; // -(2^2) = -4, not (-2)^2 = 4
-        yield 'unary-pow-grouping'   => ['(-2)^2', 4];
-        yield 'unary-with-func'      => ['-sqrt(4)', -2];
-        yield 'unary-chain'          => ['- - 5', 5]; // 0 - (0 - 5)
+        yield 'unary-pow-precedence' => ['-2^2', -4];     // -(2^2) = -4, not (-2)^2 = 4
+        yield 'unary-pow-grouping' => ['(-2)^2', 4];
+        yield 'unary-with-func' => ['-sqrt(4)', -2];
+        yield 'unary-chain' => ['- - 5', 5]; // 0 - (0 - 5)
 
         // --- Mega Complex Combinations ---
         // 5! + 2^3 - sqrt(16) = 120 + 8 - 4 = 124
