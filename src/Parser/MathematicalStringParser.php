@@ -4,8 +4,10 @@ declare(strict_types=1);
 
 namespace Rpn\Parser;
 
+use Generator;
 use InvalidArgumentException;
 use Rpn\Operands\Number;
+use Rpn\Operands\OperandInterface;
 use Rpn\Operators\Addition;
 use Rpn\Operators\CubeRoot;
 use Rpn\Operators\Division;
@@ -14,6 +16,7 @@ use Rpn\Operators\Factorial;
 use Rpn\Operators\FourthRoot;
 use Rpn\Operators\Log;
 use Rpn\Operators\Multiplication;
+use Rpn\Operators\OperatorInterface;
 use Rpn\Operators\Power;
 use Rpn\Operators\Sqrt;
 use Rpn\Operators\Subtraction;
@@ -23,8 +26,13 @@ use function is_numeric;
 use function preg_match;
 use function preg_match_all;
 
+/**
+ * @psalm-type _PrecedenceClass=class-string<Addition|Subtraction|Multiplication|Division|Power|Sqrt|CubeRoot|FourthRoot|Log|Exp|Factorial>
+ * @psalm-type _RightAssociativeClass=class-string<Power|Sqrt|CubeRoot|FourthRoot|Log|Exp>
+ */
 readonly class MathematicalStringParser implements ParserInterface
 {
+    /** @var array<_PrecedenceClass, int> */
     private const array PRECEDENCE = [
         Addition::class => 1,
         Subtraction::class => 1,
@@ -39,6 +47,7 @@ readonly class MathematicalStringParser implements ParserInterface
         Factorial::class => 5,
     ];
 
+    /** @var array<_RightAssociativeClass, bool> */
     private const array RIGHT_ASSOCIATIVE = [
         Power::class => true,
         Sqrt::class => true,
@@ -56,8 +65,10 @@ readonly class MathematicalStringParser implements ParserInterface
     {
     }
 
+    /** @return Generator<int, OperandInterface|OperatorInterface, mixed, void> */
     public function parse(): iterable
     {
+        /** @var SplStack<string|OperatorInterface> $operatorsStack */
         $operatorsStack = new SplStack();
 
         preg_match_all('/[a-zA-Z]+|\d+(?:\.\d+)?|[+\-*\/^!(),]|√|×|÷|∛|∜/u', $this->source, $matches);
@@ -107,6 +118,7 @@ readonly class MathematicalStringParser implements ParserInterface
                     if ($lastOperator === self::PARENTHESIS_OPEN) {
                         break;
                     }
+                    /** @var OperatorInterface $lastOperator */
                     yield $lastOperator;
                 }
 
@@ -120,6 +132,7 @@ readonly class MathematicalStringParser implements ParserInterface
                         $top instanceof CubeRoot ||
                         $top instanceof FourthRoot
                     ) {
+                        /** @var OperatorInterface $popped*/
                         yield $operatorsStack->pop();
                     }
                 }
@@ -161,13 +174,28 @@ readonly class MathematicalStringParser implements ParserInterface
                     break;
                 }
 
-                $lastPrec = self::PRECEDENCE[$lastOperator::class] ?? 0;
-                $currPrec = self::PRECEDENCE[$currentOperator::class] ?? 0;
+                /**
+                 * @var OperatorInterface $lastOperator
+                 * @var _PrecedenceClass $lastOperatorClass
+                 */
+                $lastOperatorClass = $lastOperator::class;
+                $lastPrecedence = self::PRECEDENCE[$lastOperatorClass] ?? 0;
+                $currPrecedence = self::PRECEDENCE[$currentOperator::class] ?? 0;
 
+                /**
+                 * Somehow psalm completely ignores ?? operator here.
+                 * @psalm-suppress MixedAssignment
+                 * @psalm-suppress InvalidArrayOffset
+                 */
                 $isRightAssoc = self::RIGHT_ASSOCIATIVE[$currentOperator::class] ?? false;
 
-                if (($isRightAssoc && $lastPrec > $currPrec) || (!$isRightAssoc && $lastPrec >= $currPrec)) {
-                    yield $operatorsStack->pop();
+                if (
+                    ($isRightAssoc !== false && $lastPrecedence > $currPrecedence)
+                    || ($isRightAssoc === false && $lastPrecedence >= $currPrecedence)
+                ) {
+                    /** @var OperatorInterface $popped*/
+                    $popped = $operatorsStack->pop();
+                    yield $popped;
                 } else {
                     break;
                 }
@@ -177,6 +205,7 @@ readonly class MathematicalStringParser implements ParserInterface
             $isOperandExpected = true;
         }
 
+        /** @var SplStack<OperatorInterface> $operatorsStack */
         yield from $operatorsStack;
     }
 }
