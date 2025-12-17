@@ -156,9 +156,6 @@ composer test
 # Code style
 ./vendor/bin/phpcs
 
-# Fix code style issues
-./vendor/bin/phpcbf
-
 # Parallel linting
 ./vendor/bin/parallel-lint src tests
 ```
