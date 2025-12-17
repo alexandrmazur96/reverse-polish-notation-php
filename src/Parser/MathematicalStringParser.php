@@ -12,10 +12,8 @@ use Rpn\Operators\Multiplication;
 use Rpn\Operators\Subtraction;
 use SplStack;
 
-use function explode;
-use function preg_replace;
-use function trim;
 use function is_numeric;
+use function preg_match_all;
 
 readonly class MathematicalStringParser implements ParserInterface
 {
@@ -36,55 +34,82 @@ readonly class MathematicalStringParser implements ParserInterface
     /** @inheritdoc */
     public function parse(): iterable
     {
-        $cleanedSource = preg_replace('/\s+/', ' ', trim($this->source));
         $operatorsStack = new SplStack();
-        if ($cleanedSource !== false && $cleanedSource !== '') {
-            foreach (explode(' ', $cleanedSource) as $token) {
-                // numerals goes straight to the expression stream
-                if (is_numeric($token)) {
-                    yield new Number((float) $token);
-                    continue;
-                }
 
-                if ($token === self::PARENTHESIS_OPEN) {
-                    $operatorsStack->push($token);
-                    continue;
-                }
+        // Regex tokenizer to handle tight spacing like "(5+3)"
+        preg_match_all('/\d+(?:\.\d+)?|[+\-*\/()]/', $this->source, $matches);
+        $tokens = $matches[0];
 
-                if ($token === self::PARENTHESIS_CLOSE) {
-                    while ($lastOperator = $operatorsStack->pop()) {
-                        if ($lastOperator === self::PARENTHESIS_OPEN) {
-                            break;
-                        }
-                        yield $lastOperator;
-                    }
-                    continue;
-                }
+        $isOperandExpected = true;
 
-                // operators have to be pushed to the operator stack first.
-                // before put operator to the stack we have to check that operator on the top of the stack
-                // has less precedence than the current one.
-                $currentOperator = match ($token) {
-                    '+' => new Addition(),
-                    '-' => new Subtraction(),
-                    '*' => new Multiplication(),
-                    '/' => new Division(),
-                    default => throw new InvalidArgumentException("Unknown token: {$token}"),
-                };
-
-                $lastOperator = $operatorsStack->isEmpty() ? null : $operatorsStack->top();
-                if (
-                    !is_string($lastOperator)
-                    && $lastOperator !== null
-                    && self::PRECEDENCE[$lastOperator::class] >= self::PRECEDENCE[$currentOperator::class]
-                ) {
-                    yield $operatorsStack->pop();
-                }
-
-                $operatorsStack->push($currentOperator);
+        foreach ($tokens as $token) {
+            if (is_numeric($token)) {
+                yield new Number((float) $token);
+                $isOperandExpected = false;
+                continue;
             }
 
-            yield from $operatorsStack;
+            if ($token === self::PARENTHESIS_OPEN) {
+                $operatorsStack->push($token);
+                $isOperandExpected = true;
+                continue;
+            }
+
+            if ($token === self::PARENTHESIS_CLOSE) {
+                while (!$operatorsStack->isEmpty()) {
+                    $lastOperator = $operatorsStack->pop();
+                    if ($lastOperator === self::PARENTHESIS_OPEN) {
+                        break;
+                    }
+                    yield $lastOperator;
+                }
+                $isOperandExpected = false;
+                continue;
+            }
+
+            $currentOperator = match ($token) {
+                '+' => new Addition(),
+                '-' => new Subtraction(),
+                '*' => new Multiplication(),
+                '/' => new Division(),
+                default => throw new InvalidArgumentException("Unknown token: $token"),
+            };
+
+            // UNARY MINUS LOGIC
+            if ($token === '-' && $isOperandExpected) {
+                // 1. Inject a zero to convert "-x" into "0 - x"
+                yield new Number(0);
+
+                // 2. Push the Subtraction operator immediately.
+                // CRITICAL FIX: Do NOT enter the while loop below.
+                // By skipping the pop loop, we effectively give this specific minus
+                // higher precedence (right-associativity) than whatever is on the stack.
+                $operatorsStack->push($currentOperator);
+
+                // 3. We still expect a number next
+                $isOperandExpected = true;
+                continue;
+            }
+
+            // STANDARD BINARY OPERATOR LOGIC
+            while (!$operatorsStack->isEmpty()) {
+                $lastOperator = $operatorsStack->top();
+
+                if ($lastOperator === self::PARENTHESIS_OPEN) {
+                    break;
+                }
+
+                if (self::PRECEDENCE[$lastOperator::class] >= self::PRECEDENCE[$currentOperator::class]) {
+                    yield $operatorsStack->pop();
+                } else {
+                    break;
+                }
+            }
+
+            $operatorsStack->push($currentOperator);
+            $isOperandExpected = true;
         }
+
+        yield from $operatorsStack;
     }
 }
