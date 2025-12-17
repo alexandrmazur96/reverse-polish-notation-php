@@ -27,6 +27,7 @@ readonly class Expression
 
     public function evaluate(): float
     {
+        /** @var SplStack<OperandInterface> $operandsStack */
         $operandsStack = new SplStack();
 
         foreach ($this->parts as $part) {
