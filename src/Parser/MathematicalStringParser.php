@@ -32,12 +32,20 @@ readonly class MathematicalStringParser implements ParserInterface
         Division::class => 2,
         Power::class => 3,
         Sqrt::class => 4,
+        CubeRoot::class => 4,
+        FourthRoot::class => 4,
+        Log::class => 4,
+        Exp::class => 4,
         Factorial::class => 5,
     ];
 
     private const array RIGHT_ASSOCIATIVE = [
         Power::class => true,
         Sqrt::class => true,
+        CubeRoot::class => true,
+        FourthRoot::class => true,
+        Log::class => true,
+        Exp::class => true,
     ];
 
     private const string PARENTHESIS_OPEN = '(';
@@ -52,11 +60,7 @@ readonly class MathematicalStringParser implements ParserInterface
     {
         $operatorsStack = new SplStack();
 
-        // [a-zA-Z]+      Matches function names (sqrt, pow, log)
-        // \d+(?:\.\d+)?  Matches numbers
-        // [+\-*\/^!(),]  Matches operators and separator
-        // √∛∜÷×         Matches explicit Unicode root
-        preg_match_all('/[a-zA-Z]+|\d+(?:\.\d+)?|[+\-*\/^!()]|√|×|÷|∛|∜/u', $this->source, $matches);
+        preg_match_all('/[a-zA-Z]+|\d+(?:\.\d+)?|[+\-*\/^!(),]|√|×|÷|∛|∜/u', $this->source, $matches);
         $tokens = $matches[0];
 
         $isOperandExpected = true;
@@ -108,10 +112,17 @@ readonly class MathematicalStringParser implements ParserInterface
 
                 if (!$operatorsStack->isEmpty()) {
                     $top = $operatorsStack->top();
-                    if (!($top instanceof Addition || $top instanceof Multiplication)) {
-                        if ($top instanceof Sqrt || $top instanceof Log || $top instanceof Power) {
-                            yield $operatorsStack->pop();
-                        }
+                    // FIX 2: Added Exp, CubeRoot, FourthRoot to the function check
+                    // We check if the top is one of our known Function/Prefix classes
+                    if (
+                        $top instanceof Sqrt ||
+                        $top instanceof Log ||
+                        $top instanceof Power ||
+                        $top instanceof Exp ||
+                        $top instanceof CubeRoot ||
+                        $top instanceof FourthRoot
+                    ) {
+                        yield $operatorsStack->pop();
                     }
                 }
 
@@ -145,7 +156,6 @@ readonly class MathematicalStringParser implements ParserInterface
                 continue;
             }
 
-            // Standard Shunting-Yard with Right-Associativity Check
             while (!$operatorsStack->isEmpty()) {
                 $lastOperator = $operatorsStack->top();
 
