@@ -7,12 +7,20 @@ namespace Rpn\Parser;
 use InvalidArgumentException;
 use Rpn\Operands\Number;
 use Rpn\Operators\Addition;
+use Rpn\Operators\CubeRoot;
 use Rpn\Operators\Division;
+use Rpn\Operators\Exp;
+use Rpn\Operators\Factorial;
+use Rpn\Operators\FourthRoot;
+use Rpn\Operators\Log;
 use Rpn\Operators\Multiplication;
+use Rpn\Operators\Power;
+use Rpn\Operators\Sqrt;
 use Rpn\Operators\Subtraction;
 use SplStack;
 
 use function is_numeric;
+use function preg_match;
 use function preg_match_all;
 
 readonly class MathematicalStringParser implements ParserInterface
@@ -22,30 +30,64 @@ readonly class MathematicalStringParser implements ParserInterface
         Subtraction::class => 1,
         Multiplication::class => 2,
         Division::class => 2,
+        Power::class => 3,
+        Sqrt::class => 4,
+        Factorial::class => 5,
+    ];
+
+    private const array RIGHT_ASSOCIATIVE = [
+        Power::class => true,
+        Sqrt::class => true,
     ];
 
     private const string PARENTHESIS_OPEN = '(';
     private const string PARENTHESIS_CLOSE = ')';
-    
+    private const string SEPARATOR = ',';
+
     public function __construct(private string $source)
     {
     }
 
-    /** @inheritdoc */
     public function parse(): iterable
     {
         $operatorsStack = new SplStack();
 
-        // Regex tokenizer to handle tight spacing like "(5+3)"
-        preg_match_all('/\d+(?:\.\d+)?|[+\-*\/()]/', $this->source, $matches);
+        // [a-zA-Z]+      Matches function names (sqrt, pow, log)
+        // \d+(?:\.\d+)?  Matches numbers
+        // [+\-*\/^!(),]  Matches operators and separator
+        // √∛∜÷×         Matches explicit Unicode root
+        preg_match_all('/[a-zA-Z]+|\d+(?:\.\d+)?|[+\-*\/^!()]|√|×|÷|∛|∜/u', $this->source, $matches);
         $tokens = $matches[0];
 
         $isOperandExpected = true;
-
         foreach ($tokens as $token) {
             if (is_numeric($token)) {
-                yield new Number((float) $token);
+                yield new Number((float)$token);
                 $isOperandExpected = false;
+                continue;
+            }
+
+            if (preg_match('/^[a-zA-Z]+$/', $token)) {
+                $op = match ($token) {
+                    'sqrt' => new Sqrt(),
+                    'pow' => new Power(),
+                    'log' => new Log(),
+                    'exp' => new Exp(),
+                    default => throw new InvalidArgumentException("Unknown function: $token")
+                };
+                $operatorsStack->push($op);
+                $isOperandExpected = true;
+                continue;
+            }
+
+            if ($token === self::SEPARATOR) {
+                while (!$operatorsStack->isEmpty()) {
+                    if ($operatorsStack->top() === self::PARENTHESIS_OPEN) {
+                        break;
+                    }
+                    yield $operatorsStack->pop();
+                }
+                $isOperandExpected = true;
                 continue;
             }
 
@@ -63,6 +105,16 @@ readonly class MathematicalStringParser implements ParserInterface
                     }
                     yield $lastOperator;
                 }
+
+                if (!$operatorsStack->isEmpty()) {
+                    $top = $operatorsStack->top();
+                    if (!($top instanceof Addition || $top instanceof Multiplication)) {
+                        if ($top instanceof Sqrt || $top instanceof Log || $top instanceof Power) {
+                            yield $operatorsStack->pop();
+                        }
+                    }
+                }
+
                 $isOperandExpected = false;
                 continue;
             }
@@ -70,28 +122,30 @@ readonly class MathematicalStringParser implements ParserInterface
             $currentOperator = match ($token) {
                 '+' => new Addition(),
                 '-' => new Subtraction(),
-                '*' => new Multiplication(),
-                '/' => new Division(),
+                '*', '×' => new Multiplication(),
+                '/', '÷' => new Division(),
+                '^' => new Power(),
+                '!' => new Factorial(),
+                '√' => new Sqrt(),
+                '∛' => new CubeRoot(),
+                '∜' => new FourthRoot(),
                 default => throw new InvalidArgumentException("Unknown token: $token"),
             };
 
-            // UNARY MINUS LOGIC
             if ($token === '-' && $isOperandExpected) {
-                // 1. Inject a zero to convert "-x" into "0 - x"
                 yield new Number(0);
-
-                // 2. Push the Subtraction operator immediately.
-                // CRITICAL FIX: Do NOT enter the while loop below.
-                // By skipping the pop loop, we effectively give this specific minus
-                // higher precedence (right-associativity) than whatever is on the stack.
                 $operatorsStack->push($currentOperator);
-
-                // 3. We still expect a number next
                 $isOperandExpected = true;
                 continue;
             }
 
-            // STANDARD BINARY OPERATOR LOGIC
+            if ($token === '!') {
+                yield $currentOperator;
+                $isOperandExpected = false;
+                continue;
+            }
+
+            // Standard Shunting-Yard with Right-Associativity Check
             while (!$operatorsStack->isEmpty()) {
                 $lastOperator = $operatorsStack->top();
 
@@ -99,7 +153,12 @@ readonly class MathematicalStringParser implements ParserInterface
                     break;
                 }
 
-                if (self::PRECEDENCE[$lastOperator::class] >= self::PRECEDENCE[$currentOperator::class]) {
+                $lastPrec = self::PRECEDENCE[$lastOperator::class] ?? 0;
+                $currPrec = self::PRECEDENCE[$currentOperator::class] ?? 0;
+
+                $isRightAssoc = self::RIGHT_ASSOCIATIVE[$currentOperator::class] ?? false;
+
+                if (($isRightAssoc && $lastPrec > $currPrec) || (!$isRightAssoc && $lastPrec >= $currPrec)) {
                     yield $operatorsStack->pop();
                 } else {
                     break;
