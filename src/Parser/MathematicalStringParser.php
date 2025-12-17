@@ -112,8 +112,6 @@ readonly class MathematicalStringParser implements ParserInterface
 
                 if (!$operatorsStack->isEmpty()) {
                     $top = $operatorsStack->top();
-                    // FIX 2: Added Exp, CubeRoot, FourthRoot to the function check
-                    // We check if the top is one of our known Function/Prefix classes
                     if (
                         $top instanceof Sqrt ||
                         $top instanceof Log ||
