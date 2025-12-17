@@ -74,7 +74,7 @@ readonly class MathematicalStringParser implements ParserInterface
         /** @var SplStack<string|OperatorInterface> $operatorsStack */
         $operatorsStack = new SplStack();
 
-        preg_match_all('/[a-zA-Z]+|\d+(?:\.\d+)?|[+\-*\/^!(),]|√|×|÷|∛|∜/u', $this->source, $matches);
+        preg_match_all('/[a-zA-Z]+|\d+(?:\.\d+)?|[+\-*\/^!(),]|√|×|÷|∛|∜|\S/u', $this->source, $matches);
         $tokens = $matches[0];
 
         $isOperandExpected = true;

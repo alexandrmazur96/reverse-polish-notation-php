@@ -229,6 +229,7 @@ use Rpn\Parsers\MathematicalStringParser;
 use Rpn\Expression;
 use Rpn\Exceptions\UnknownFunctionException;
 use Rpn\Exceptions\UnknownTokenException;
+use Rpn\Exceptions\InvalidExpressionException;
 
 try {
     $parser = new MathematicalStringParser('unknown_func()');
@@ -241,7 +242,14 @@ try {
     $parser = new MathematicalStringParser('5 @@ 3');
     new Expression(...$parser->parse());
 } catch (UnknownTokenException $e) {
-    echo $e->getMessage(); // "Unknown token: @@"
+    echo $e->getMessage(); // "Unknown token: @"
+}
+
+try {
+    $parser = new MathematicalStringParser('* 5 + 3');
+    new Expression(...$parser->parse());
+} catch (InvalidExpressionException: $e) {
+    echo $e->getMessage(); // Not enough operands.
 }
 ```
 
