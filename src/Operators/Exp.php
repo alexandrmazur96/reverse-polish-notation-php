@@ -11,7 +11,7 @@ use function exp;
 
 readonly class Exp implements OperatorInterface
 {
-    public function apply(OperandInterface $left, OperandInterface $unused): OperandInterface
+    public function apply(OperandInterface $left, OperandInterface $right): OperandInterface
     {
         return new Number(exp($left->value()));
     }
