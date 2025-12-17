@@ -2,6 +2,7 @@
     "name": "php-rpn/rpn",
     "description": "Reverse Polish Notation implementation in PHP",
     "type": "library",
+    "license": ["MIT"],
     "keywords": [
         "rpn",
         "reverse polish notation",
