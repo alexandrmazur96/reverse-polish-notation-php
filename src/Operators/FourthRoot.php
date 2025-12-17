@@ -11,6 +11,6 @@ readonly class FourthRoot implements OperatorInterface
 {
     public function apply(OperandInterface $left, OperandInterface $right): OperandInterface
     {
-        return new Number($right->value() ** (1 / 4));
+        return new Number($left->value() ** (1 / 4));
     }
 }
