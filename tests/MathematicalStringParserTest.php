@@ -41,5 +41,6 @@ final class MathematicalStringParserTest extends TestCase
         yield 'complex-6' => ['100 * ( 2 + 12 ) / 14', 100];
         yield 'complex-7' => ['10 - - 7', 17];
         yield 'complex-8' => ['(5+3)+12', 20];
+        yield 'complex-9' => ['100 * (2 + 12) / 14', 100];
     }
 }
