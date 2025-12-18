@@ -37,9 +37,14 @@ readonly class FourthRoot implements OperatorInterface
     public function apply(OperandInterface ...$operands): OperandInterface
     {
         if (count($operands) !== 1) {
-            throw new InvalidOperatorArgumentException('CubeRoot operator requires exactly one operand.');
+            throw new InvalidOperatorArgumentException('FourthRoot operator requires exactly one operand.');
         }
 
-        return new Number($operands[0]->value() ** (1 / 4));
+        $val = $operands[0]->value();
+        if ($val < 0) {
+            throw new InvalidOperatorArgumentException('Cannot calculate fourth root of a negative number.');
+        }
+
+        return new Number($val ** (1 / 4));
     }
 }

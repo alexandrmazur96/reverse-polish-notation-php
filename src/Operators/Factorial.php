@@ -45,6 +45,9 @@ readonly class Factorial implements OperatorInterface
         if ($value < 0) {
             throw new InvalidOperatorArgumentException('Factorial is not defined for negative numbers.');
         }
+        if ($operands[0]->value() != $value) {
+            throw new InvalidOperatorArgumentException('Factorial is only defined for integers.');
+        }
 
         $result = 1;
         for ($i = 2; $i <= $value; $i++) {
