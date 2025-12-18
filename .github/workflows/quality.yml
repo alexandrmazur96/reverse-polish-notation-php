@@ -27,7 +27,7 @@ jobs:
         with:
           php-version: ${{ matrix.php }}
           tools: composer:v2
-          coverage: pcov
+          coverage: xdebug, pcov
 
       - name: Get Composer Cache Directory
         id: composer-cache
@@ -58,8 +58,8 @@ jobs:
       - name: Run tests
         run: vendor/bin/phpunit --coverage-clover build/logs/clover.xml
 
-      - name: Upload coverage report
-        uses: actions/upload-artifact@v4
+      - name: Coverage Check
+        uses: ericsizemore/phpunit-coverage-check-action@2.0.0
         with:
-          name: coverage-report-${{ matrix.php }}
-          path: build/logs/clover.xml
+          clover_file: 'build/logs/clover.xml'
+          threshold: 100
