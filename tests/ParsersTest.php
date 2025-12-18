@@ -7,15 +7,52 @@ namespace Rpn\Tests;
 use Generator;
 use PHPUnit\Framework\Attributes\DataProvider;
 use Rpn\Expression;
-use Rpn\Parsers\MathematicalStringParser;
+use Rpn\Operators\Addition;
+use Rpn\Operators\CubeRoot;
+use Rpn\Operators\Division;
+use Rpn\Operators\Exp;
+use Rpn\Operators\Factorial;
+use Rpn\Operators\FourthRoot;
+use Rpn\Operators\Log;
+use Rpn\Operators\Multiplication;
+use Rpn\Operators\Negation;
+use Rpn\Operators\OperatorRegistry;
+use Rpn\Operators\Power;
+use Rpn\Operators\Sqrt;
+use Rpn\Operators\Subtraction;
+use Rpn\Parsers\ShuntingYardParser;
+use Rpn\Tokenizers\StringTokenizer;
+use Throwable;
 
-final class MathematicalStringParserTest extends TestCase
+final class ParsersTest extends TestCase
 {
     #[DataProvider('mathStringsProvider')]
-    public function testMathStringParsed(string $mathStr, float $expected): void
+    public function testShuntingYardParser(string $mathStr, float $expected): void
     {
-        $expressionParts = (new MathematicalStringParser($mathStr))->parse();
-        $this->assertEqualsWithDelta($expected, (new Expression(...$expressionParts))->evaluate(), 0.0001);
+        $registry = new OperatorRegistry();
+        $registry->add('+', new Addition());
+        $registry->add('-', new Subtraction());
+        $registry->add('-', new Negation());
+        $registry->add(['/', '÷'], new Division());
+        $registry->add(['*', '×'], new Multiplication());
+        $registry->add(['^', 'pow'], new Power());
+        $registry->add('!', new Factorial());
+        $registry->add(['√', 'sqrt'], new Sqrt());
+        $registry->add('∛', new CubeRoot());
+        $registry->add('∜', new FourthRoot());
+        $registry->add('log', new Log());
+        $registry->add('exp', new Exp());
+
+        $parser = new ShuntingYardParser(
+            $registry,
+            new StringTokenizer($registry->getSymbolicTokens()),
+        );
+
+        try {
+            $this->assertEqualsWithDelta($expected, (new Expression())->evaluate($parser->parse($mathStr)), 0.0001);
+        } catch (Throwable $e) {
+            $this->fail("Failed to evaluate expression for '$mathStr': " . $e->getMessage());
+        }
     }
 
     /** @return Generator<string, array{0: string, 1: float}> */
