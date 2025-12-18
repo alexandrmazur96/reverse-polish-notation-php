@@ -23,7 +23,7 @@ use Rpn\Operators\OperatorRegistry;
 use Rpn\Tokenizers\StringTokenizer;
 use Rpn\Tokenizers\TokenizerInterface;
 
-final readonly class ShuntingYardParserBuilder
+readonly class ShuntingYardParserBuilder
 {
     private function __construct(
         private OperatorRegistry $operatorRegistry,
