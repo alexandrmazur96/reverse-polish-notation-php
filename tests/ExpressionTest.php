@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Rpn\Tests;
 
-use Rpn\Expression;
 use Rpn\Exceptions\InvalidExpressionException;
+use Rpn\Expression;
 use Rpn\Operands\Number;
 use Rpn\Operators\Factorial;
 use Rpn\Operators\Multiplication;

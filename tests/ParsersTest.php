@@ -6,9 +6,9 @@ namespace Rpn\Tests;
 
 use Generator;
 use PHPUnit\Framework\Attributes\DataProvider;
-use Rpn\Expression;
 use Rpn\Exceptions\InvalidExpressionException;
 use Rpn\Exceptions\UnknownTokenException;
+use Rpn\Expression;
 use Rpn\Operators\Addition;
 use Rpn\Operators\CubeRoot;
 use Rpn\Operators\Division;
