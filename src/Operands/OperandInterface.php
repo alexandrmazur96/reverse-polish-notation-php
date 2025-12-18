@@ -6,5 +6,5 @@ namespace Rpn\Operands;
 
 interface OperandInterface
 {
-    public function value(): float;
+    public function value(): mixed;
 }
