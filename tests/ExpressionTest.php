@@ -26,7 +26,7 @@ final class ExpressionTest extends TestCase
         );
 
         try {
-            $this->assertEquals(12, (new Expression())->evaluate($stream));
+            $this->assertEquals(12, (new Expression())->evaluate($stream)->value());
         } catch (Throwable $e) {
             $this->fail("Failed to evaluate expression: " . $e->getMessage());
         }

@@ -11,6 +11,7 @@ use Rpn\Exceptions\InvalidOperatorArgumentException;
 use Rpn\Exceptions\UnknownFunctionException;
 use Rpn\Exceptions\UnknownTokenException;
 use Rpn\Expression;
+use Rpn\Operands\Resolvers\NumericOperandResolver;
 use Rpn\Operators\Addition;
 use Rpn\Operators\CubeRoot;
 use Rpn\Operators\Division;
@@ -51,10 +52,11 @@ final class ParsersTest extends TestCase
         $parser = new ShuntingYardParser(
             $registry,
             new StringTokenizer($registry->getSymbolicTokens()),
+            new NumericOperandResolver()
         );
 
         try {
-            $this->assertEqualsWithDelta($expected, (new Expression())->evaluate($parser->parse($mathStr)), 0.0001);
+            $this->assertEqualsWithDelta($expected, (new Expression())->evaluate($parser->parse($mathStr))->value(), 0.0001);
         } catch (Throwable $e) {
             $this->fail("Failed to evaluate expression for '$mathStr': " . $e->getMessage());
         }
