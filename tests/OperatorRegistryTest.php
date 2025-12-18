@@ -41,7 +41,7 @@ final class OperatorRegistryTest extends TestCase
     {
         $registry = new OperatorRegistry();
         $registry->add('+', new Addition());
-        $registry->add(['-'], new Subtraction());
+        $registry->add(['-', 'minus'], new Subtraction());
 
         $this->assertEqualsCanonicalizing(['+', '-'], $registry->getSymbolicTokens());
     }

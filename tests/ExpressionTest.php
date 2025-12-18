@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Rpn\Tests;
 
 use Rpn\Exceptions\InvalidExpressionException;
+use Rpn\Exceptions\InvalidOperatorArgumentException;
 use Rpn\Expression;
 use Rpn\Operands\Number;
 use Rpn\Operators\Factorial;
@@ -31,6 +32,7 @@ final class ExpressionTest extends TestCase
         }
     }
 
+    /** @throws InvalidOperatorArgumentException */
     public function testTooManyOperandsRemaining(): void
     {
         $this->expectException(InvalidExpressionException::class);
@@ -40,6 +42,7 @@ final class ExpressionTest extends TestCase
         (new Expression())->evaluate($stream);
     }
 
+    /** @throws InvalidOperatorArgumentException */
     public function testNotEnoughOperandsForBinaryOperation(): void
     {
         $this->expectException(InvalidExpressionException::class);
@@ -49,6 +52,7 @@ final class ExpressionTest extends TestCase
         (new Expression())->evaluate($stream);
     }
 
+    /** @throws InvalidOperatorArgumentException */
     public function testNotEnoughOperandsForUnaryOperation(): void
     {
         $this->expectException(InvalidExpressionException::class);

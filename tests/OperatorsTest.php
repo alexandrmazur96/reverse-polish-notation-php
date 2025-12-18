@@ -4,7 +4,10 @@ declare(strict_types=1);
 
 namespace Rpn\Tests;
 
+use Generator;
 use PHPUnit\Framework\Attributes\DataProvider;
+use Rpn\Enum\Associativity;
+use Rpn\Enum\OperatorType;
 use Rpn\Exceptions\InvalidOperatorArgumentException;
 use Rpn\Operands\Number;
 use Rpn\Operators\Addition;
@@ -16,12 +19,14 @@ use Rpn\Operators\FourthRoot;
 use Rpn\Operators\Log;
 use Rpn\Operators\Multiplication;
 use Rpn\Operators\Negation;
+use Rpn\Operators\OperatorInterface;
 use Rpn\Operators\Power;
 use Rpn\Operators\Sqrt;
 use Rpn\Operators\Subtraction;
 
 final class OperatorsTest extends TestCase
 {
+    /** @throws InvalidOperatorArgumentException */
     public function testAddition(): void
     {
         $operator = new Addition();
@@ -29,6 +34,7 @@ final class OperatorsTest extends TestCase
         $this->assertEquals(8, $result->value());
     }
 
+    /** @throws InvalidOperatorArgumentException */
     public function testSubtraction(): void
     {
         $operator = new Subtraction();
@@ -36,6 +42,7 @@ final class OperatorsTest extends TestCase
         $this->assertEquals(2, $result->value());
     }
 
+    /** @throws InvalidOperatorArgumentException */
     public function testMultiplication(): void
     {
         $operator = new Multiplication();
@@ -43,6 +50,7 @@ final class OperatorsTest extends TestCase
         $this->assertEquals(15, $result->value());
     }
 
+    /** @throws InvalidOperatorArgumentException */
     public function testDivision(): void
     {
         $operator = new Division();
@@ -50,6 +58,7 @@ final class OperatorsTest extends TestCase
         $this->assertEquals(5, $result->value());
     }
 
+    /** @throws InvalidOperatorArgumentException */
     public function testDivisionByZero(): void
     {
         $this->expectException(InvalidOperatorArgumentException::class);
@@ -57,6 +66,7 @@ final class OperatorsTest extends TestCase
         (new Division())->apply(new Number(10), new Number(0));
     }
 
+    /** @throws InvalidOperatorArgumentException */
     public function testPower(): void
     {
         $operator = new Power();
@@ -64,6 +74,7 @@ final class OperatorsTest extends TestCase
         $this->assertEquals(8, $result->value());
     }
 
+    /** @throws InvalidOperatorArgumentException */
     public function testNegation(): void
     {
         $operator = new Negation();
@@ -71,6 +82,7 @@ final class OperatorsTest extends TestCase
         $this->assertEquals(-5, $result->value());
     }
 
+    /** @throws InvalidOperatorArgumentException */
     #[DataProvider('factorialProvider')]
     public function testFactorial(float $number, float $expected): void
     {
@@ -103,6 +115,7 @@ final class OperatorsTest extends TestCase
         (new Factorial())->apply(new Number(1.5));
     }
 
+    /** @throws InvalidOperatorArgumentException */
     public function testSqrt(): void
     {
         $operator = new Sqrt();
@@ -117,6 +130,7 @@ final class OperatorsTest extends TestCase
         (new Sqrt())->apply(new Number(-1));
     }
 
+    /** @throws InvalidOperatorArgumentException */
     public function testCubeRoot(): void
     {
         $operator = new CubeRoot();
@@ -124,6 +138,7 @@ final class OperatorsTest extends TestCase
         $this->assertEquals(3, $result->value());
     }
 
+    /** @throws InvalidOperatorArgumentException */
     public function testCubeRootOfNegative(): void
     {
         $operator = new CubeRoot();
@@ -131,6 +146,7 @@ final class OperatorsTest extends TestCase
         $this->assertEquals(-3, $result->value());
     }
 
+    /** @throws InvalidOperatorArgumentException */
     public function testFourthRoot(): void
     {
         $operator = new FourthRoot();
@@ -145,6 +161,7 @@ final class OperatorsTest extends TestCase
         (new FourthRoot())->apply(new Number(-1));
     }
 
+    /** @throws InvalidOperatorArgumentException */
     public function testLog(): void
     {
         $operator = new Log();
@@ -166,10 +183,114 @@ final class OperatorsTest extends TestCase
         (new Log())->apply(new Number(0));
     }
 
+    /** @throws InvalidOperatorArgumentException */
     public function testExp(): void
     {
         $operator = new Exp();
         $result = $operator->apply(new Number(0));
         $this->assertEquals(1, $result->value());
+    }
+
+    public function testAdditionWrongArgs(): void
+    {
+        $this->expectException(InvalidOperatorArgumentException::class);
+        (new Addition())->apply(new Number(1));
+    }
+
+    public function testSubtractionWrongArgs(): void
+    {
+        $this->expectException(InvalidOperatorArgumentException::class);
+        (new Subtraction())->apply(new Number(1));
+    }
+
+    public function testMultiplicationWrongArgs(): void
+    {
+        $this->expectException(InvalidOperatorArgumentException::class);
+        (new Multiplication())->apply(new Number(1));
+    }
+
+    public function testDivisionWrongArgs(): void
+    {
+        $this->expectException(InvalidOperatorArgumentException::class);
+        (new Division())->apply(new Number(1));
+    }
+
+    public function testPowerWrongArgs(): void
+    {
+        $this->expectException(InvalidOperatorArgumentException::class);
+        (new Power())->apply(new Number(1));
+    }
+
+    public function testNegationWrongArgs(): void
+    {
+        $this->expectException(InvalidOperatorArgumentException::class);
+        (new Negation())->apply(new Number(1), new Number(2));
+    }
+
+    public function testFactorialWrongArgs(): void
+    {
+        $this->expectException(InvalidOperatorArgumentException::class);
+        (new Factorial())->apply(new Number(1), new Number(2));
+    }
+
+    public function testSqrtWrongArgs(): void
+    {
+        $this->expectException(InvalidOperatorArgumentException::class);
+        (new Sqrt())->apply(new Number(1), new Number(2));
+    }
+
+    public function testCubeRootWrongArgs(): void
+    {
+        $this->expectException(InvalidOperatorArgumentException::class);
+        (new CubeRoot())->apply(new Number(1), new Number(2));
+    }
+
+    public function testFourthRootWrongArgs(): void
+    {
+        $this->expectException(InvalidOperatorArgumentException::class);
+        (new FourthRoot())->apply(new Number(1), new Number(2));
+    }
+
+    public function testLogWrongArgs(): void
+    {
+        $this->expectException(InvalidOperatorArgumentException::class);
+        (new Log())->apply(new Number(1), new Number(2));
+    }
+
+    public function testExpWrongArgs(): void
+    {
+        $this->expectException(InvalidOperatorArgumentException::class);
+        (new Exp())->apply(new Number(1), new Number(2));
+    }
+
+    /** @param class-string<OperatorInterface> $class */
+    #[DataProvider('operatorMetaProvider')]
+    public function testOperatorMeta(
+        string $class,
+        int $precedence,
+        Associativity $associativity,
+        OperatorType $type
+    ): void {
+        $operator = new $class();
+        $this->assertSame($precedence, $operator->getPrecedence());
+        $this->assertSame($associativity, $operator->getAssociativity());
+        $this->assertSame($type, $operator->getType());
+    }
+
+    /** @return Generator<string, array{0: class-string<OperatorInterface>, 1: int, 2: Associativity, 3: OperatorType}> */
+    public static function operatorMetaProvider(): Generator
+    {
+        yield 'Addition' => [Addition::class, 1, Associativity::Left, OperatorType::Binary];
+        yield 'Subtraction' => [Subtraction::class, 1, Associativity::Left, OperatorType::Binary];
+        yield 'Multiplication' => [Multiplication::class, 2, Associativity::Left, OperatorType::Binary];
+        yield 'Division' => [Division::class, 2, Associativity::Left, OperatorType::Binary];
+        yield 'Power' => [Power::class, 3, Associativity::Right, OperatorType::Binary];
+        yield 'Negation' => [Negation::class, 3, Associativity::Right, OperatorType::UnaryPrefix];
+        yield 'Factorial' => [Factorial::class, 5, Associativity::None, OperatorType::UnaryPostfix];
+        yield 'Sqrt' => [Sqrt::class, 4, Associativity::None, OperatorType::Function];
+        yield 'CubeRoot' => [CubeRoot::class, 4, Associativity::None, OperatorType::Function];
+        yield 'FourthRoot' => [FourthRoot::class, 4, Associativity::None, OperatorType::Function];
+        yield 'Log' => [Log::class, 4, Associativity::None, OperatorType::Function];
+        yield 'Exp' => [Exp::class, 4, Associativity::None, OperatorType::Function];
     }
 }

@@ -36,6 +36,11 @@ readonly class StringTokenizer implements TokenizerInterface
     {
         preg_match_all($this->regex, $source, $matches);
 
-        return $matches[0] ?? [];
+        $matches = $matches[0] ?? [];
+        foreach ($matches as $match) {
+            if ($match !== '') {
+                yield $match;
+            }
+        }
     }
 }

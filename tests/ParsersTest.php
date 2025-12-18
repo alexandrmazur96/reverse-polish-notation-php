@@ -7,6 +7,8 @@ namespace Rpn\Tests;
 use Generator;
 use PHPUnit\Framework\Attributes\DataProvider;
 use Rpn\Exceptions\InvalidExpressionException;
+use Rpn\Exceptions\InvalidOperatorArgumentException;
+use Rpn\Exceptions\UnknownFunctionException;
 use Rpn\Exceptions\UnknownTokenException;
 use Rpn\Expression;
 use Rpn\Operators\Addition;
@@ -58,6 +60,11 @@ final class ParsersTest extends TestCase
         }
     }
 
+    /**
+     * @throws InvalidOperatorArgumentException
+     * @throws UnknownTokenException
+     * @throws UnknownFunctionException
+     */
     public function testMismatchedParentheses(): void
     {
         $this->expectException(InvalidExpressionException::class);
@@ -67,6 +74,11 @@ final class ParsersTest extends TestCase
         (new Expression())->evaluate($parser->parse('(3 + 4'));
     }
 
+    /**
+     * @throws InvalidExpressionException
+     * @throws InvalidOperatorArgumentException
+     * @throws UnknownFunctionException
+     */
     public function testUnknownToken(): void
     {
         $this->expectException(UnknownTokenException::class);
@@ -74,6 +86,65 @@ final class ParsersTest extends TestCase
 
         $parser = ShuntingYardParserBuilder::math()->build();
         (new Expression())->evaluate($parser->parse('3 @ 4'));
+    }
+
+    /**
+     * @throws InvalidOperatorArgumentException
+     * @throws UnknownTokenException
+     * @throws UnknownFunctionException
+     */
+    public function testExpressionEndingWithOpenParenthesis(): void
+    {
+        $this->expectException(InvalidExpressionException::class);
+        $this->expectExceptionMessage('Mismatched parentheses');
+
+        $parser = ShuntingYardParserBuilder::math()->build();
+        $evaluator = new Expression();
+        $evaluator->evaluate($parser->parse('5 + ('));
+    }
+
+    public function testStringTokenizerWithNoSymbols(): void
+    {
+        $tokenizer = new StringTokenizer([]);
+        $tokens = iterator_to_array($tokenizer->tokenize('3 + 4'));
+
+        $this->assertEquals(['3', '+', '4'], $tokens);
+    }
+
+    /**
+     * @throws InvalidOperatorArgumentException
+     * @throws UnknownTokenException
+     * @throws UnknownFunctionException
+     */
+    public function testCommaWithEmptyOperatorStack(): void
+    {
+        $parser = ShuntingYardParserBuilder::math()->build();
+        $evaluator = new Expression();
+
+        // An expression like "5, 3" is not valid syntax, but we need to ensure
+        // the parser handles it gracefully without crashing.
+        // The parser should effectively ignore the comma and treat it as "5 3".
+        // The evaluator will then throw an exception for too many operands.
+        $this->expectException(InvalidExpressionException::class);
+        $this->expectExceptionMessage('Too many operands remaining.');
+
+        $rpnStream = $parser->parse('5, 3');
+        $evaluator->evaluate($rpnStream);
+    }
+
+    /**
+     * @throws InvalidOperatorArgumentException
+     * @throws UnknownTokenException
+     * @throws UnknownFunctionException
+     * @throws InvalidExpressionException
+     */
+    public function testMismatchedClosingParenthesis(): void
+    {
+        $this->expectException(InvalidExpressionException::class);
+        $this->expectExceptionMessage('Mismatched parentheses');
+
+        $parser = ShuntingYardParserBuilder::math()->build();
+        (new Expression())->evaluate($parser->parse('3 + 4)'));
     }
 
     /** @return Generator<string, array{0: string, 1: float}> */
@@ -116,6 +187,7 @@ final class ParsersTest extends TestCase
         yield 'pow-symbol-3' => ['2^0', 1];
         yield 'pow-func-1' => ['pow(2, 3)', 8];
         yield 'pow-func-2' => ['pow(2, 3) + 2', 10];
+        yield 'pow-with-expression-arg' => ['pow(1 + 1, 3)', 8];
 
         // Right Associativity Test: 2^3^2 should be 2^(3^2) = 2^9 = 512.
         // If left associative, it would be (2^3)^2 = 8^2 = 64.
