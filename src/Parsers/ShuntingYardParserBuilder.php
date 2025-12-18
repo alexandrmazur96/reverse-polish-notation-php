@@ -19,11 +19,14 @@ use Rpn\Operators\Power;
 use Rpn\Operators\Sqrt;
 use Rpn\Operators\Subtraction;
 use Rpn\Tokenizers\StringTokenizer;
+use Rpn\Tokenizers\TokenizerInterface;
 
 final readonly class ShuntingYardParserBuilder
 {
-    private function __construct(private OperatorRegistry $operatorRegistry)
-    {
+    private function __construct(
+        private OperatorRegistry $operatorRegistry,
+        private ?TokenizerInterface $tokenizer = null
+    ) {
     }
 
     public static function empty(): self
@@ -57,11 +60,16 @@ final readonly class ShuntingYardParserBuilder
         return $this;
     }
 
+    public function withTokenizer(TokenizerInterface $tokenizer): self
+    {
+        return new self($this->operatorRegistry, $tokenizer);
+    }
+
     public function build(): ShuntingYardParser
     {
         return new ShuntingYardParser(
             $this->operatorRegistry,
-            new StringTokenizer($this->operatorRegistry->getSymbolicTokens())
+            $this->tokenizer ?? new StringTokenizer($this->operatorRegistry->getSymbolicTokens())
         );
     }
 }
