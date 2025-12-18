@@ -28,6 +28,8 @@ use Rpn\Operators\Math\Sqrt;
 use Rpn\Operators\Math\Subtraction;
 use Rpn\Operators\OperatorInterface;
 
+use Rpn\Tests\Stubs\BadOperand;
+
 use function array_fill;
 
 final class OperatorsTest extends TestCase
@@ -344,17 +346,8 @@ final class OperatorsTest extends TestCase
             . '.'
         );
 
-        $badOperand = new readonly class implements OperandInterface
-        {
-            #[Override]
-            public function value(): string
-            {
-                return 'test';
-            }
-        };
-
         /** @var array<int, OperandInterface> $operands */
-        $operands = array_fill(0, $operandCounts, $badOperand);
+        $operands = array_fill(0, $operandCounts, new BadOperand());
         $operator->apply(...$operands);
     }
 
