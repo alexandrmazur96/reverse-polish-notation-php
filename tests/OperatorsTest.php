@@ -22,6 +22,7 @@ use Rpn\Operators\Math\FourthRoot;
 use Rpn\Operators\Math\Log;
 use Rpn\Operators\Math\Multiplication;
 use Rpn\Operators\Math\Negation;
+use Rpn\Operators\Math\Percent;
 use Rpn\Operators\Math\Power;
 use Rpn\Operators\Math\Sqrt;
 use Rpn\Operators\Math\Subtraction;
@@ -32,6 +33,14 @@ use function array_fill;
 
 final class OperatorsTest extends TestCase
 {
+    /** @throws InvalidOperatorArgumentException */
+    public function testPercent(): void
+    {
+        $operator = new Percent();
+        $result = $operator->apply(new Number(50));
+        $this->assertEquals(0.5, $result->value());
+    }
+
     /** @throws InvalidOperatorArgumentException */
     public function testAddition(): void
     {
@@ -293,6 +302,12 @@ final class OperatorsTest extends TestCase
         (new Exp())->apply(new Number(1), new Number(2));
     }
 
+    public function testPercentWrongArgs(): void
+    {
+        $this->expectException(InvalidOperatorArgumentException::class);
+        (new Percent())->apply(new Number(1), new Number(2));
+    }
+
     /** @param class-string<OperatorInterface> $class */
     #[DataProvider('operatorMetaProvider')]
     public function testOperatorMeta(
@@ -322,6 +337,7 @@ final class OperatorsTest extends TestCase
         yield 'FourthRoot' => [FourthRoot::class, 4, Associativity::None, OperatorType::Function];
         yield 'Log' => [Log::class, 4, Associativity::None, OperatorType::Function];
         yield 'Exp' => [Exp::class, 4, Associativity::None, OperatorType::Function];
+        yield 'Percent' => [Percent::class, 5, Associativity::Left, OperatorType::UnaryPostfix];
     }
 
     /**
@@ -364,5 +380,6 @@ final class OperatorsTest extends TestCase
         yield 'FourthRoot' => [FourthRoot::class, 1];
         yield 'Log' => [Log::class, 1];
         yield 'Exp' => [Exp::class, 1];
+        yield 'Percent' => [Percent::class, 1];
     }
 }

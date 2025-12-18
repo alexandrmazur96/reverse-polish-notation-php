@@ -21,6 +21,7 @@ use Rpn\Operators\Math\FourthRoot;
 use Rpn\Operators\Math\Log;
 use Rpn\Operators\Math\Multiplication;
 use Rpn\Operators\Math\Negation;
+use Rpn\Operators\Math\Percent;
 use Rpn\Operators\Math\Power;
 use Rpn\Operators\Math\Sqrt;
 use Rpn\Operators\Math\Subtraction;
@@ -48,6 +49,7 @@ final class ParsersTest extends TestCase
         $registry->add('∜', new FourthRoot());
         $registry->add('log', new Log());
         $registry->add('exp', new Exp());
+        $registry->add('%', new Percent());
 
         $parser = new ShuntingYardParser(
             $registry,
@@ -214,5 +216,15 @@ final class ParsersTest extends TestCase
         // --- Root symbols ---
         yield 'cube-root' => ['∛27', 3];
         yield 'fourth-root' => ['∜81', 3];
+
+        // --- Percent Operator ---
+        yield 'percent-1' => ['50%', 0.5];
+        yield 'percent-2' => ['200% + 50%', 2.5];
+        yield 'percent-with-mul-1' => ['200% * 50', 100];
+        yield 'percent-with-mul-2' => ['100 * 5%', 5];
+
+        // --- Nested Expression ---
+        yield 'nested-1' => ['sqrt(7 * 7 / 7 * 7)', 7];
+        yield 'nested-2' => ['pow(2 * 5 + 25, 2)', 1225];
     }
 }

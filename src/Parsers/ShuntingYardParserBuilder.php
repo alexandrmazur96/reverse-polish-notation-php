@@ -15,6 +15,7 @@ use Rpn\Operators\Math\FourthRoot;
 use Rpn\Operators\Math\Log;
 use Rpn\Operators\Math\Multiplication;
 use Rpn\Operators\Math\Negation;
+use Rpn\Operators\Math\Percent;
 use Rpn\Operators\Math\Power;
 use Rpn\Operators\Math\Sqrt;
 use Rpn\Operators\Math\Subtraction;
@@ -52,6 +53,7 @@ readonly class ShuntingYardParserBuilder
         $operatorRegistry->add('∜', new FourthRoot());
         $operatorRegistry->add('log', new Log());
         $operatorRegistry->add('exp', new Exp());
+        $operatorRegistry->add('%', new Percent());
 
         return new self(
             operatorRegistry: $operatorRegistry,
