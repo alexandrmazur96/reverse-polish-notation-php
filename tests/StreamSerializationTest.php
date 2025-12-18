@@ -43,4 +43,24 @@ final class StreamSerializationTest extends TestCase
         $this->assertInstanceOf(ExpressionPartsStream::class, $unserializedStream);
         $this->assertEquals(610, $expression->evaluate($unserializedStream)->value());
     }
+
+    public function testSerializeGeneratorNotDrained(): void
+    {
+        $streamSource = static function (): Generator {
+            yield new Number(10);
+            yield new Number(20);
+            yield new Number(30);
+            yield new Multiplication();
+            yield new Addition();
+        };
+
+        $expression = new Expression();
+
+        $stream = new ExpressionPartsStream($streamSource());
+        $serialized = serialize($stream);
+        unset($stream);
+        $unserializedStream = unserialize($serialized, ['allowed_classes' => true]);
+        $this->assertInstanceOf(ExpressionPartsStream::class, $unserializedStream);
+        $this->assertEquals(610, $expression->evaluate($unserializedStream)->value());
+    }
 }
