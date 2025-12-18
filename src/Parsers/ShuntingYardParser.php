@@ -24,6 +24,7 @@ readonly class ShuntingYardParser implements ParserInterface
 {
     private const string PARENTHESIS_OPEN = '(';
     private const string PARENTHESIS_CLOSE = ')';
+    private const string FUNCTION_ARG_SEPARATOR = ',';
 
     public function __construct(
         private OperatorRegistry $registry,
@@ -48,6 +49,7 @@ readonly class ShuntingYardParser implements ParserInterface
         /** @var SplStack<string|OperatorInterface> $operatorsStack */
         $operatorsStack = new SplStack();
         $isOperandExpected = true;
+        $openParentheses = 0; // Track balance to ensure safety at the end
 
         foreach ($this->tokenizer->tokenize($source) as $token) {
             if (is_numeric($token)) {
@@ -58,37 +60,47 @@ readonly class ShuntingYardParser implements ParserInterface
 
             if ($token === self::PARENTHESIS_OPEN) {
                 $operatorsStack->push(self::PARENTHESIS_OPEN);
+                $openParentheses++;
                 $isOperandExpected = true;
                 continue;
             }
+
             if ($token === self::PARENTHESIS_CLOSE) {
                 while (!$operatorsStack->isEmpty() && $operatorsStack->top() !== self::PARENTHESIS_OPEN) {
-                    yield $operatorsStack->pop();
+                    /** @var OperatorInterface $popped */
+                    $popped = $operatorsStack->pop();
+                    yield $popped;
                 }
 
                 if ($operatorsStack->isEmpty()) {
                     throw new InvalidExpressionException("Mismatched parentheses");
                 }
                 $operatorsStack->pop(); // Pop parenthesis open
+                $openParentheses--;     // Decrement counter
 
                 if (!$operatorsStack->isEmpty()) {
                     $operator = $operatorsStack->top();
                     if ($operator instanceof OperatorInterface && $operator->getType() === OperatorType::Function) {
-                        yield $operatorsStack->pop();
+                        /** @var OperatorInterface $popped */
+                        $popped = $operatorsStack->pop();
+                        yield $popped;
                     }
                 }
                 $isOperandExpected = false;
                 continue;
             }
-            if ($token === ',') {
-                while (!$operatorsStack->isEmpty() && $operatorsStack->top() !== '(') {
-                    yield $operatorsStack->pop();
+
+            if ($token === self::FUNCTION_ARG_SEPARATOR) {
+                while (!$operatorsStack->isEmpty() && $operatorsStack->top() !== self::PARENTHESIS_OPEN) {
+                    /** @var OperatorInterface $popped */
+                    $popped = $operatorsStack->pop();
+                    yield $popped;
                 }
                 $isOperandExpected = true;
                 continue;
             }
 
-            // 3. Operators
+            // Operators
             $op = $this->registry->resolve($token, $isOperandExpected);
 
             if ($op !== null) {
@@ -123,7 +135,9 @@ readonly class ShuntingYardParser implements ParserInterface
                             && $op->getPrecedence() < $top->getPrecedence()
                         )
                     ) {
-                        yield $operatorsStack->pop();
+                        /** @var OperatorInterface $popped */
+                        $popped = $operatorsStack->pop();
+                        yield $popped;
                     } else {
                         break;
                     }
@@ -134,6 +148,11 @@ readonly class ShuntingYardParser implements ParserInterface
             }
 
             throw new UnknownTokenException("Unknown token: $token");
+        }
+
+        // If parentheses are balanced (0), the stack implies strictly OperatorInterface.
+        if ($openParentheses > 0) {
+            throw new InvalidExpressionException("Mismatched parentheses");
         }
 
         /** @var SplStack<OperatorInterface> $operatorsStack */

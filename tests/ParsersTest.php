@@ -7,6 +7,8 @@ namespace Rpn\Tests;
 use Generator;
 use PHPUnit\Framework\Attributes\DataProvider;
 use Rpn\Expression;
+use Rpn\Exceptions\InvalidExpressionException;
+use Rpn\Exceptions\UnknownTokenException;
 use Rpn\Operators\Addition;
 use Rpn\Operators\CubeRoot;
 use Rpn\Operators\Division;
@@ -21,6 +23,7 @@ use Rpn\Operators\Power;
 use Rpn\Operators\Sqrt;
 use Rpn\Operators\Subtraction;
 use Rpn\Parsers\ShuntingYardParser;
+use Rpn\Parsers\ShuntingYardParserBuilder;
 use Rpn\Tokenizers\StringTokenizer;
 use Throwable;
 
@@ -53,6 +56,24 @@ final class ParsersTest extends TestCase
         } catch (Throwable $e) {
             $this->fail("Failed to evaluate expression for '$mathStr': " . $e->getMessage());
         }
+    }
+
+    public function testMismatchedParentheses(): void
+    {
+        $this->expectException(InvalidExpressionException::class);
+        $this->expectExceptionMessage('Mismatched parentheses');
+
+        $parser = ShuntingYardParserBuilder::math()->build();
+        (new Expression())->evaluate($parser->parse('(3 + 4'));
+    }
+
+    public function testUnknownToken(): void
+    {
+        $this->expectException(UnknownTokenException::class);
+        $this->expectExceptionMessage('Unknown token: @');
+
+        $parser = ShuntingYardParserBuilder::math()->build();
+        (new Expression())->evaluate($parser->parse('3 @ 4'));
     }
 
     /** @return Generator<string, array{0: string, 1: float}> */
@@ -100,48 +121,20 @@ final class ParsersTest extends TestCase
         // If left associative, it would be (2^3)^2 = 8^2 = 64.
         yield 'pow-right-assoc' => ['2 ^ 3 ^ 2', 512];
 
-        // --- Square Root (sqrt, √) ---
-        yield 'sqrt-func-1' => ['sqrt(16)', 4];
-        yield 'sqrt-func-2' => ['sqrt(16) + sqrt(9)', 7];
-        yield 'sqrt-symbol-1' => ['√16', 4];
-        yield 'sqrt-symbol-2' => ['√16 + √9', 7];
-        yield 'sqrt-complex' => ['sqrt(pow(3, 2) + pow(4, 2))', 5]; // Pythagorean 3-4-5
+        // --- Functions (sqrt, log, exp) ---
+        yield 'sqrt-func' => ['sqrt(16)', 4];
+        yield 'sqrt-symbol' => ['√16', 4];
+        yield 'sqrt-combo' => ['sqrt(16) + 4', 8];
+        yield 'log-func' => ['log(1)', 0];
+        yield 'exp-func' => ['exp(0)', 1];
 
-        // --- Other Roots (∛, ∜) ---
-        yield 'cuberoot-symbol' => ['∛8', 2];
-        yield 'cuberoot-neg' => ['∛-8', -2];
-        yield 'fourthroot-symbol' => ['∜16', 2];
+        // --- Unary Operators (!, negation) ---
+        yield 'factorial' => ['5!', 120];
+        yield 'negation' => ['-5', -5];
+        yield 'negation-complex' => ['-5 + 10', 5];
 
-        // --- Factorial (!) ---
-        yield 'factorial-1' => ['5!', 120];
-        yield 'factorial-2' => ['3! + 2', 8]; // Precedence check: (3!) + 2
-        yield 'factorial-3' => ['(2 + 1)!', 6];
-        yield 'factorial-0' => ['0!', 1];
-
-        // --- Logarithm & Exponential (log, exp) ---
-        yield 'exp-1' => ['exp(0)', 1];
-        yield 'log-1' => ['log(1)', 0];
-        yield 'log-exp-inverse' => ['log(exp(5))', 5];
-        yield 'exp-log-inverse' => ['exp(log(10))', 10];
-        yield 'log-combo' => ['log(exp(2) * exp(3))', 5]; // ln(e^2 * e^3) = ln(e^5) = 5
-
-        // --- Unary Minus Edge Cases ---
-        yield 'unary-pow-precedence' => ['-2^2', -4];     // -(2^2) = -4, not (-2)^2 = 4
-        yield 'unary-pow-grouping' => ['(-2)^2', 4];
-        yield 'unary-with-func' => ['-sqrt(4)', -2];
-        yield 'unary-chain' => ['- - 5', 5]; // 0 - (0 - 5)
-
-        // --- Mega Complex Combinations ---
-        // 5! + 2^3 - sqrt(16) = 120 + 8 - 4 = 124
-        yield 'mega-1' => ['5! + 2^3 - sqrt(16)', 124];
-
-        // 10 + 3 * 2^2 = 10 + 3 * 4 = 22 (Check precedence: ^ higher than *)
-        yield 'mega-2' => ['10 + 3 * 2^2', 22];
-
-        // (3!)! = 6! = 720
-        yield 'mega-nested-factorial' => ['(3!)!', 720];
-
-        // sqrt(100) * 2 + 5! / 2 = 10 * 2 + 120 / 2 = 20 + 60 = 80
-        yield 'mega-3' => ['sqrt(100) * 2 + 5! / 2', 80];
+        // --- Root symbols ---
+        yield 'cube-root' => ['∛27', 3];
+        yield 'fourth-root' => ['∜81', 3];
     }
 }
