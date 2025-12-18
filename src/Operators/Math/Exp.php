@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Rpn\Operators;
+namespace Rpn\Operators\Math;
 
 use Override;
 use Rpn\Enum\Associativity;
@@ -10,36 +10,41 @@ use Rpn\Enum\OperatorType;
 use Rpn\Exceptions\InvalidOperatorArgumentException;
 use Rpn\Operands\Number;
 use Rpn\Operands\OperandInterface;
+use Rpn\Operators\OperatorInterface;
 
 use function count;
+use function exp;
 
-readonly class Addition implements OperatorInterface
+readonly class Exp implements OperatorInterface
 {
     #[Override]
     public function getPrecedence(): int
     {
-        return 1;
+        return 4;
     }
 
     #[Override]
     public function getAssociativity(): Associativity
     {
-        return Associativity::Left;
+        return Associativity::None;
     }
 
     #[Override]
     public function getType(): OperatorType
     {
-        return OperatorType::Binary;
+        return OperatorType::Function;
     }
 
     #[Override]
     public function apply(OperandInterface ...$operands): OperandInterface
     {
-        if (count($operands) !== 2) {
-            throw new InvalidOperatorArgumentException('Addition operator requires exactly two operands.');
+        if (count($operands) !== 1) {
+            throw new InvalidOperatorArgumentException('Exp requires exactly 1 operand.');
+        }
+        if (!($operands[0] instanceof Number)) {
+            throw new InvalidOperatorArgumentException('Exp operator requires a Number operand.');
         }
 
-        return new Number($operands[0]->value() + $operands[1]->value());
+        return new Number(exp($operands[0]->value()));
     }
 }

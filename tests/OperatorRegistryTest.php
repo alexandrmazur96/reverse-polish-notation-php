@@ -5,10 +5,10 @@ declare(strict_types=1);
 namespace Rpn\Tests;
 
 use Rpn\Enum\OperatorType;
-use Rpn\Operators\Addition;
-use Rpn\Operators\Negation;
+use Rpn\Operators\Math\Addition;
+use Rpn\Operators\Math\Negation;
+use Rpn\Operators\Math\Subtraction;
 use Rpn\Operators\OperatorRegistry;
-use Rpn\Operators\Subtraction;
 
 final class OperatorRegistryTest extends TestCase
 {

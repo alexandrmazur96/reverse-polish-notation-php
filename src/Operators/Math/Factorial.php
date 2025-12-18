@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Rpn\Operators;
+namespace Rpn\Operators\Math;
 
 use Override;
 use Rpn\Enum\Associativity;
@@ -10,6 +10,7 @@ use Rpn\Enum\OperatorType;
 use Rpn\Exceptions\InvalidOperatorArgumentException;
 use Rpn\Operands\Number;
 use Rpn\Operands\OperandInterface;
+use Rpn\Operators\OperatorInterface;
 
 use function count;
 
@@ -39,6 +40,9 @@ readonly class Factorial implements OperatorInterface
         if (count($operands) !== 1) {
             throw new InvalidOperatorArgumentException('Factorial requires exactly 1 operand.');
         }
+        if (!($operands[0] instanceof Number)) {
+            throw new InvalidOperatorArgumentException('Factorial operator requires a Number operand.');
+        }
 
         $value = (int)$operands[0]->value();
 
@@ -46,7 +50,7 @@ readonly class Factorial implements OperatorInterface
             throw new InvalidOperatorArgumentException('Factorial is not defined for negative numbers.');
         }
         if ($operands[0]->value() != $value) {
-            throw new InvalidOperatorArgumentException('Factorial is only defined for integers.');
+            throw new InvalidOperatorArgumentException('Factorial operator is only defined for integers.');
         }
 
         $result = 1;

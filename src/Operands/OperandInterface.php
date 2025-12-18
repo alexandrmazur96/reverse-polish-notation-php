@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace Rpn\Operands;
 
+/** @template TOut */
 interface OperandInterface
 {
-    public function value(): float;
+    /** @return TOut */
+    public function value(): mixed;
 }

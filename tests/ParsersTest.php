@@ -11,19 +11,20 @@ use Rpn\Exceptions\InvalidOperatorArgumentException;
 use Rpn\Exceptions\UnknownFunctionException;
 use Rpn\Exceptions\UnknownTokenException;
 use Rpn\Expression;
-use Rpn\Operators\Addition;
-use Rpn\Operators\CubeRoot;
-use Rpn\Operators\Division;
-use Rpn\Operators\Exp;
-use Rpn\Operators\Factorial;
-use Rpn\Operators\FourthRoot;
-use Rpn\Operators\Log;
-use Rpn\Operators\Multiplication;
-use Rpn\Operators\Negation;
+use Rpn\Operands\Resolvers\NumericOperandResolver;
+use Rpn\Operators\Math\Addition;
+use Rpn\Operators\Math\CubeRoot;
+use Rpn\Operators\Math\Division;
+use Rpn\Operators\Math\Exp;
+use Rpn\Operators\Math\Factorial;
+use Rpn\Operators\Math\FourthRoot;
+use Rpn\Operators\Math\Log;
+use Rpn\Operators\Math\Multiplication;
+use Rpn\Operators\Math\Negation;
+use Rpn\Operators\Math\Power;
+use Rpn\Operators\Math\Sqrt;
+use Rpn\Operators\Math\Subtraction;
 use Rpn\Operators\OperatorRegistry;
-use Rpn\Operators\Power;
-use Rpn\Operators\Sqrt;
-use Rpn\Operators\Subtraction;
 use Rpn\Parsers\ShuntingYardParser;
 use Rpn\Parsers\ShuntingYardParserBuilder;
 use Rpn\Tokenizers\StringTokenizer;
@@ -51,10 +52,15 @@ final class ParsersTest extends TestCase
         $parser = new ShuntingYardParser(
             $registry,
             new StringTokenizer($registry->getSymbolicTokens()),
+            new NumericOperandResolver()
         );
 
         try {
-            $this->assertEqualsWithDelta($expected, (new Expression())->evaluate($parser->parse($mathStr)), 0.0001);
+            $this->assertEqualsWithDelta(
+                $expected,
+                (new Expression())->evaluate($parser->parse($mathStr))->value(),
+                0.0001
+            );
         } catch (Throwable $e) {
             $this->fail("Failed to evaluate expression for '$mathStr': " . $e->getMessage());
         }

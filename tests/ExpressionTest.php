@@ -8,8 +8,8 @@ use Rpn\Exceptions\InvalidExpressionException;
 use Rpn\Exceptions\InvalidOperatorArgumentException;
 use Rpn\Expression;
 use Rpn\Operands\Number;
-use Rpn\Operators\Factorial;
-use Rpn\Operators\Multiplication;
+use Rpn\Operators\Math\Factorial;
+use Rpn\Operators\Math\Multiplication;
 use Rpn\Stream\ExpressionPartsStream;
 use Throwable;
 
@@ -26,7 +26,7 @@ final class ExpressionTest extends TestCase
         );
 
         try {
-            $this->assertEquals(12, (new Expression())->evaluate($stream));
+            $this->assertEquals(12, (new Expression())->evaluate($stream)->value());
         } catch (Throwable $e) {
             $this->fail("Failed to evaluate expression: " . $e->getMessage());
         }

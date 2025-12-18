@@ -6,23 +6,29 @@ namespace Rpn\Tests;
 
 use Generator;
 use PHPUnit\Framework\Attributes\DataProvider;
+use ReflectionClass;
+use ReflectionException;
 use Rpn\Enum\Associativity;
 use Rpn\Enum\OperatorType;
 use Rpn\Exceptions\InvalidOperatorArgumentException;
 use Rpn\Operands\Number;
-use Rpn\Operators\Addition;
-use Rpn\Operators\CubeRoot;
-use Rpn\Operators\Division;
-use Rpn\Operators\Exp;
-use Rpn\Operators\Factorial;
-use Rpn\Operators\FourthRoot;
-use Rpn\Operators\Log;
-use Rpn\Operators\Multiplication;
-use Rpn\Operators\Negation;
+use Rpn\Operands\OperandInterface;
+use Rpn\Operators\Math\Addition;
+use Rpn\Operators\Math\CubeRoot;
+use Rpn\Operators\Math\Division;
+use Rpn\Operators\Math\Exp;
+use Rpn\Operators\Math\Factorial;
+use Rpn\Operators\Math\FourthRoot;
+use Rpn\Operators\Math\Log;
+use Rpn\Operators\Math\Multiplication;
+use Rpn\Operators\Math\Negation;
+use Rpn\Operators\Math\Power;
+use Rpn\Operators\Math\Sqrt;
+use Rpn\Operators\Math\Subtraction;
 use Rpn\Operators\OperatorInterface;
-use Rpn\Operators\Power;
-use Rpn\Operators\Sqrt;
-use Rpn\Operators\Subtraction;
+use Rpn\Tests\Stubs\BadOperand;
+
+use function array_fill;
 
 final class OperatorsTest extends TestCase
 {
@@ -111,7 +117,7 @@ final class OperatorsTest extends TestCase
     public function testFactorialOfNonInteger(): void
     {
         $this->expectException(InvalidOperatorArgumentException::class);
-        $this->expectExceptionMessage('Factorial is only defined for integers.');
+        $this->expectExceptionMessage('Factorial operator is only defined for integers.');
         (new Factorial())->apply(new Number(1.5));
     }
 
@@ -131,6 +137,14 @@ final class OperatorsTest extends TestCase
     }
 
     /** @throws InvalidOperatorArgumentException */
+    public function testSqrtOfZero(): void
+    {
+        $operator = new Sqrt();
+        $result = $operator->apply(new Number(0));
+        $this->assertEquals(0, $result->value());
+    }
+
+    /** @throws InvalidOperatorArgumentException */
     public function testCubeRoot(): void
     {
         $operator = new CubeRoot();
@@ -147,6 +161,14 @@ final class OperatorsTest extends TestCase
     }
 
     /** @throws InvalidOperatorArgumentException */
+    public function testCubeRootOfZero(): void
+    {
+        $operator = new CubeRoot();
+        $result = $operator->apply(new Number(0));
+        $this->assertEquals(0, $result->value());
+    }
+
+    /** @throws InvalidOperatorArgumentException */
     public function testFourthRoot(): void
     {
         $operator = new FourthRoot();
@@ -159,6 +181,14 @@ final class OperatorsTest extends TestCase
         $this->expectException(InvalidOperatorArgumentException::class);
         $this->expectExceptionMessage('Cannot calculate fourth root of a negative number.');
         (new FourthRoot())->apply(new Number(-1));
+    }
+
+    /** @throws InvalidOperatorArgumentException */
+    public function testFourthRootOfZero(): void
+    {
+        $operator = new FourthRoot();
+        $result = $operator->apply(new Number(0));
+        $this->assertEquals(0, $result->value());
     }
 
     /** @throws InvalidOperatorArgumentException */
@@ -292,5 +322,47 @@ final class OperatorsTest extends TestCase
         yield 'FourthRoot' => [FourthRoot::class, 4, Associativity::None, OperatorType::Function];
         yield 'Log' => [Log::class, 4, Associativity::None, OperatorType::Function];
         yield 'Exp' => [Exp::class, 4, Associativity::None, OperatorType::Function];
+    }
+
+    /**
+     * @param class-string<OperatorInterface> $operatorClass
+     * @throws ReflectionException
+     */
+    #[DataProvider('mathOperatorProvider')]
+    public function testMathOperatorWithBadOperand(string $operatorClass, int $operandCounts): void
+    {
+        $operator = new $operatorClass();
+        $reflect = new ReflectionClass($operator);
+        $operatorClassName = $reflect->getShortName();
+
+        $this->expectException(InvalidOperatorArgumentException::class);
+        $this->expectExceptionMessage(
+            "$operatorClassName operator requires"
+            . ($operandCounts === 1 ? ' a' : '')
+            . " Number operand"
+            . ($operandCounts === 1 ? '' : 's')
+            . '.'
+        );
+
+        /** @var array<int, OperandInterface> $operands */
+        $operands = array_fill(0, $operandCounts, new BadOperand());
+        $operator->apply(...$operands);
+    }
+
+    /** @return Generator<string, array{0: class-string<OperatorInterface>, 1: int}> */
+    public static function mathOperatorProvider(): Generator
+    {
+        yield 'Addition' => [Addition::class, 2];
+        yield 'Subtraction' => [Subtraction::class, 2];
+        yield 'Multiplication' => [Multiplication::class, 2];
+        yield 'Division' => [Division::class, 2];
+        yield 'Power' => [Power::class, 2];
+        yield 'Negation' => [Negation::class, 1];
+        yield 'Factorial' => [Factorial::class, 1];
+        yield 'Sqrt' => [Sqrt::class, 1];
+        yield 'CubeRoot' => [CubeRoot::class, 1];
+        yield 'FourthRoot' => [FourthRoot::class, 1];
+        yield 'Log' => [Log::class, 1];
+        yield 'Exp' => [Exp::class, 1];
     }
 }

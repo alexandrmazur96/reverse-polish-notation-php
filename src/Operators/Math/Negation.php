@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Rpn\Operators;
+namespace Rpn\Operators\Math;
 
 use Override;
 use Rpn\Enum\Associativity;
@@ -10,6 +10,7 @@ use Rpn\Enum\OperatorType;
 use Rpn\Exceptions\InvalidOperatorArgumentException;
 use Rpn\Operands\Number;
 use Rpn\Operands\OperandInterface;
+use Rpn\Operators\OperatorInterface;
 
 use function count;
 
@@ -38,6 +39,9 @@ readonly class Negation implements OperatorInterface
     {
         if (count($operands) !== 1) {
             throw new InvalidOperatorArgumentException('Negation requires exactly 1 operand.');
+        }
+        if (!($operands[0] instanceof Number)) {
+            throw new InvalidOperatorArgumentException('Negation operator requires a Number operand.');
         }
 
         return new Number(-$operands[0]->value());

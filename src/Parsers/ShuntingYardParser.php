@@ -10,15 +10,13 @@ use Rpn\Enum\Associativity;
 use Rpn\Enum\OperatorType;
 use Rpn\Exceptions\InvalidExpressionException;
 use Rpn\Exceptions\UnknownTokenException;
-use Rpn\Operands\Number;
 use Rpn\Operands\OperandInterface;
+use Rpn\Operands\Resolvers\OperandResolverInterface;
 use Rpn\Operators\OperatorInterface;
 use Rpn\Operators\OperatorRegistry;
 use Rpn\Stream\ExpressionPartsStream;
 use Rpn\Tokenizers\TokenizerInterface;
 use SplStack;
-
-use function is_numeric;
 
 readonly class ShuntingYardParser implements ParserInterface
 {
@@ -28,7 +26,8 @@ readonly class ShuntingYardParser implements ParserInterface
 
     public function __construct(
         private OperatorRegistry $registry,
-        private TokenizerInterface $tokenizer
+        private TokenizerInterface $tokenizer,
+        private OperandResolverInterface $operandResolver,
     ) {
     }
 
@@ -52,8 +51,8 @@ readonly class ShuntingYardParser implements ParserInterface
         $openParentheses = 0; // Track balance to ensure safety at the end
 
         foreach ($this->tokenizer->tokenize($source) as $token) {
-            if (is_numeric($token)) {
-                yield new Number((float)$token);
+            if (($operand = $this->operandResolver->resolve($token)) !== null) {
+                yield $operand;
                 $isOperandExpected = false;
                 continue;
             }
