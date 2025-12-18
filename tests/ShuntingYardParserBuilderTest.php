@@ -4,11 +4,12 @@ declare(strict_types=1);
 
 namespace Rpn\Tests;
 
+use Override;
 use Rpn\Expression;
 use Rpn\Operands\Number;
 use Rpn\Operands\OperandInterface;
 use Rpn\Operands\Resolvers\OperandResolverInterface;
-use Rpn\Operators\Addition;
+use Rpn\Operators\Math\Addition;
 use Rpn\Parsers\ShuntingYardParserBuilder;
 use Rpn\Tokenizers\StringTokenizer;
 use Throwable;
@@ -58,6 +59,7 @@ final class ShuntingYardParserBuilderTest extends TestCase
             ->withOperandResolver(
                 new readonly class implements OperandResolverInterface
                 {
+                    #[Override]
                     public function resolve(string $token): ?OperandInterface
                     {
                         if ($token === 'two') {

@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Rpn\Operators;
+namespace Rpn\Operators\Math;
 
 use Override;
 use Rpn\Enum\Associativity;
@@ -10,10 +10,12 @@ use Rpn\Enum\OperatorType;
 use Rpn\Exceptions\InvalidOperatorArgumentException;
 use Rpn\Operands\Number;
 use Rpn\Operands\OperandInterface;
+use Rpn\Operators\OperatorInterface;
 
 use function count;
+use function log;
 
-readonly class FourthRoot implements OperatorInterface
+readonly class Log implements OperatorInterface
 {
     #[Override]
     public function getPrecedence(): int
@@ -37,14 +39,17 @@ readonly class FourthRoot implements OperatorInterface
     public function apply(OperandInterface ...$operands): OperandInterface
     {
         if (count($operands) !== 1) {
-            throw new InvalidOperatorArgumentException('FourthRoot operator requires exactly one operand.');
+            throw new InvalidOperatorArgumentException('Log requires exactly 1 operand.');
+        }
+        if (!($operands[0] instanceof Number)) {
+            throw new InvalidOperatorArgumentException('Log operator requires a Number operand.');
         }
 
         $val = $operands[0]->value();
-        if ($val < 0) {
-            throw new InvalidOperatorArgumentException('Cannot calculate fourth root of a negative number.');
+        if ($val <= 0) {
+            throw new InvalidOperatorArgumentException('Logarithm is only defined for positive numbers.');
         }
 
-        return new Number($val ** (1 / 4));
+        return new Number(log($val)); // Natural logarithm
     }
 }
