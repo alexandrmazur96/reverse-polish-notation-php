@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Rpn\Tests;
 
 use Generator;
-use Override;
 use PHPUnit\Framework\Attributes\DataProvider;
 use ReflectionClass;
 use ReflectionException;
@@ -27,7 +26,6 @@ use Rpn\Operators\Math\Power;
 use Rpn\Operators\Math\Sqrt;
 use Rpn\Operators\Math\Subtraction;
 use Rpn\Operators\OperatorInterface;
-
 use Rpn\Tests\Stubs\BadOperand;
 
 use function array_fill;
