@@ -4,17 +4,17 @@ declare(strict_types=1);
 
 namespace Rpn\Parsers;
 
+use Rpn\Exceptions\InvalidExpressionException;
 use Rpn\Exceptions\UnknownFunctionException;
 use Rpn\Exceptions\UnknownTokenException;
-use Rpn\Operands\OperandInterface;
-use Rpn\Operators\OperatorInterface;
+use Rpn\Stream\ExpressionPartsStream;
 
 interface ParserInterface
 {
     /**
-     * @return iterable<int, OperandInterface|OperatorInterface>
      * @throws UnknownTokenException
      * @throws UnknownFunctionException
+     * @throws InvalidExpressionException
      */
-    public function parse(): iterable;
+    public function parse(string $source): ExpressionPartsStream;
 }
