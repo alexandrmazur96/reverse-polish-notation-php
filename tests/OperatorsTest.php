@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Rpn\Tests;
 
 use Generator;
+use Override;
 use PHPUnit\Framework\Attributes\DataProvider;
 use ReflectionClass;
 use ReflectionException;
@@ -323,7 +324,10 @@ final class OperatorsTest extends TestCase
         yield 'Exp' => [Exp::class, 4, Associativity::None, OperatorType::Function];
     }
 
-    /** @throws ReflectionException */
+    /**
+     * @param class-string<OperatorInterface> $operatorClass
+     * @throws ReflectionException
+     */
     #[DataProvider('mathOperatorProvider')]
     public function testMathOperatorWithBadOperand(string $operatorClass, int $operandCounts): void
     {
@@ -342,16 +346,19 @@ final class OperatorsTest extends TestCase
 
         $badOperand = new readonly class implements OperandInterface
         {
+            #[Override]
             public function value(): string
             {
                 return 'test';
             }
         };
 
-        $operator->apply(...array_fill(0, $operandCounts, $badOperand));
+        /** @var array<int, OperandInterface> $operands */
+        $operands = array_fill(0, $operandCounts, $badOperand);
+        $operator->apply(...$operands);
     }
 
-    /** @return Generator<string, array{0: class-string<OperatorInterface>}> */
+    /** @return Generator<string, array{0: class-string<OperatorInterface>, 1: int}> */
     public static function mathOperatorProvider(): Generator
     {
         yield 'Addition' => [Addition::class, 2];
