@@ -5,23 +5,47 @@ declare(strict_types=1);
 namespace Rpn\Operators;
 
 use Override;
+use Rpn\Enum\Associativity;
+use Rpn\Enum\OperatorType;
 use Rpn\Exceptions\InvalidOperatorArgumentException;
 use Rpn\Operands\Number;
 use Rpn\Operands\OperandInterface;
 
+use function count;
 use function log;
 
 readonly class Log implements OperatorInterface
 {
     #[Override]
-    public function apply(OperandInterface $left, OperandInterface $right): OperandInterface
+    public function getPrecedence(): int
     {
-        $value = $left->value();
+        return 4;
+    }
 
-        if ($value <= 0) {
-            throw new InvalidOperatorArgumentException("Logarithm undefined for non-positive numbers: $value");
+    #[Override]
+    public function getAssociativity(): Associativity
+    {
+        return Associativity::None;
+    }
+
+    #[Override]
+    public function getType(): OperatorType
+    {
+        return OperatorType::Function;
+    }
+
+    #[Override]
+    public function apply(OperandInterface ...$operands): OperandInterface
+    {
+        if (count($operands) !== 1) {
+            throw new InvalidOperatorArgumentException('Log requires exactly 1 operand.');
         }
 
-        return new Number(log($value));
+        $val = $operands[0]->value();
+        if ($val <= 0) {
+            throw new InvalidOperatorArgumentException('Logarithm is only defined for positive numbers.');
+        }
+
+        return new Number(log($val)); // Natural logarithm
     }
 }
