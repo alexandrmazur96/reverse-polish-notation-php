@@ -15,7 +15,7 @@ use SplStack;
 readonly class Expression
 {
     /** @throws InvalidExpressionException|InvalidOperatorArgumentException */
-    public function evaluate(ExpressionPartsStream $stream): float
+    public function evaluate(ExpressionPartsStream $stream): OperandInterface
     {
         /** @var SplStack<OperandInterface> $operandsStack */
         $operandsStack = new SplStack();
@@ -43,11 +43,10 @@ readonly class Expression
             throw new InvalidExpressionException('Too many operands remaining.');
         }
 
-        return $operandsStack->pop()->value();
+        return $operandsStack->pop();
     }
 
     /**
-     * Safe pop that throws a clear exception instead of crashing
      * @param SplStack<OperandInterface> $exprStack
      * @throws InvalidExpressionException
      */
