@@ -57,7 +57,7 @@ $rpnStream = $parser->parse('3 + 4 * 2');
 
 // 3. Evaluate the stream.
 $evaluator = new Expression();
-echo $evaluator->evaluate($rpnStream); // Output: 11
+echo $evaluator->evaluate($rpnStream)->value(); // Output: 11
 ```
 
 ### Using Mathematical Functions
@@ -71,7 +71,7 @@ $evaluator = new Expression();
 
 // Parse expressions with functions
 $rpnStream = $parser->parse('sqrt(16) + pow(2, 3)');
-echo $evaluator->evaluate($rpnStream); // Output: 12 (4 + 8)
+echo $evaluator->evaluate($rpnStream)->value(); // Output: 12 (4 + 8)
 ```
 
 ### Customizing the Parser
@@ -109,7 +109,7 @@ $parser = ShuntingYardParserBuilder::math()
 $evaluator = new Expression();
 
 $rpnStream = $parser->parse('5!!'); // 5 * 3 * 1
-echo $evaluator->evaluate($rpnStream); // Output: 15
+echo $evaluator->evaluate($rpnStream)->value(); // Output: 15
 ```
 
 ### Supported Syntax
@@ -200,7 +200,7 @@ $evaluator = new Expression();
 // Catch an unknown token
 try {
     $rpnStream = $parser->parse('5 @@ 3');
-    $evaluator->evaluate($rpnStream);
+    $evaluator->evaluate($rpnStream)->value();
 } catch (UnknownTokenException $e) {
     echo $e->getMessage(); // "Unknown token: @"
 }
@@ -208,7 +208,7 @@ try {
 // Catch an invalid expression (not enough operands)
 try {
     $rpnStream = $parser->parse('* 5 + 3');
-    $evaluator->evaluate($rpnStream);
+    $evaluator->evaluate($rpnStream)->value();
 } catch (InvalidExpressionException $e) {
     echo $e->getMessage(); // "Not enough operands for operator."
 }
