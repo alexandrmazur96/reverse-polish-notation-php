@@ -1,11 +1,11 @@
 # RPN - Reverse Polish Notation Calculator
 
-A PHP library for parsing and evaluating mathematical expressions using **Reverse Polish Notation (RPN)** with support for infix notation conversion via the **Shunting Yard algorithm**.
+A flexible and extensible PHP library for parsing and evaluating mathematical expressions using **Reverse Polish Notation (RPN)**. It uses a **Shunting-yard algorithm** implementation that is configurable and easy to use.
 
 ## What is Reverse Polish Notation?
 
 Reverse Polish Notation (also called postfix notation) is a mathematical notation in which operators follow their operands. For example:
-- **Infix:** `3 + 4 * 2` 
+- **Infix:** `3 + 4 * 2`
 - **RPN/Postfix:** `3 4 2 * +`
 
 RPN eliminates the need for parentheses and operator precedence rules during evaluation, making it simpler and faster to compute.
@@ -21,12 +21,14 @@ composer require php-rpn/rpn
 
 ## Features
 
-- ✅ **Parse infix mathematical expressions** to RPN using the Shunting Yard algorithm
-- ✅ **Evaluate RPN expressions** with correct operator precedence
+- ✅ **Fluent Builder Interface** for creating customized parsers.
+- ✅ **Parse infix mathematical expressions** to an RPN stream using the Shunting-yard algorithm.
+- ✅ **Extensible Operator Registry** to add or override operators.
+- ✅ **Evaluate RPN expression streams**.
 - ✅ **Support for standard operators:**
   - Binary operators: `+`, `-`, `*` (×), `/` (÷)
+  - Unary operators: `-` (negation), `!` (factorial)
   - Power operator: `^`
-  - Factorial: `!`
 - ✅ **Support for mathematical functions:**
   - `sqrt()` - Square root
   - `pow()` - Power function
@@ -34,107 +36,99 @@ composer require php-rpn/rpn
   - `exp()` - Exponential function
   - `∛` (cube root)
   - `∜` (fourth root)
-- ✅ **Proper operator associativity** handling
-- ✅ **Type-safe PHP 8.3+** with strict types
+- ✅ **Proper operator associativity** handling.
+- ✅ **Type-safe PHP 8.3+** with strict types.
 
 ## Usage
 
-### Direct RPN Expression Evaluation
+The library is designed with a fluent builder to make parsing and evaluation straightforward.
+
+### Basic Usage
 
 ```php
 use Rpn\Expression;
-use Rpn\Operands\Number;
-use Rpn\Operators\{Addition, Multiplication};
+use Rpn\Parsers\ShuntingYardParserBuilder;
 
-// Evaluate: 3 + 4 * 2 = 11 (but in RPN: 3 4 2 * +)
-$expression = new Expression(
-    new Number(3),
-    new Number(4),
-    new Number(2),
-    new Multiplication(),
-    new Addition(),
-);
+// 1. Get a pre-configured parser for standard math operations.
+$parser = ShuntingYardParserBuilder::math()->build();
 
-echo $expression->evaluate(); // Output: 11
-```
+// 2. Parse an infix expression into an RPN stream.
+$rpnStream = $parser->parse('3 + 4 * 2');
 
-### Parsing Infix Expressions to RPN
-
-```php
-use Rpn\Parsers\MathematicalStringParser;
-use Rpn\Expression;
-
-// Parse an infix expression
-$parser = new MathematicalStringParser('3 + 4 * 2');
-$tokens = $parser->parse();
-
-// Convert to Expression and evaluate
-$expression = new Expression(...$tokens);
-echo $expression->evaluate(); // Output: 11
+// 3. Evaluate the stream.
+$evaluator = new Expression();
+echo $evaluator->evaluate($rpnStream); // Output: 11
 ```
 
 ### Using Mathematical Functions
 
 ```php
-use Rpn\Parsers\MathematicalStringParser;
 use Rpn\Expression;
+use Rpn\Parsers\ShuntingYardParserBuilder;
+
+$parser = ShuntingYardParserBuilder::math()->build();
+$evaluator = new Expression();
 
 // Parse expressions with functions
-$parser = new MathematicalStringParser('sqrt(16) + pow(2, 3)');
-$expression = new Expression(...$parser->parse());
+$rpnStream = $parser->parse('sqrt(16) + pow(2, 3)');
+echo $evaluator->evaluate($rpnStream); // Output: 12 (4 + 8)
+```
 
-echo $expression->evaluate(); // Output: 12 (4 + 8)
+### Customizing the Parser
+
+You can add your own operators or change the behavior of existing ones.
+
+```php
+use Rpn\Expression;
+use Rpn\Parsers\ShuntingYardParserBuilder;
+use Rpn\Operators\OperatorInterface;
+use Rpn\Operands\OperandInterface;
+use Rpn\Enum\Associativity;
+use Rpn\Enum\OperatorType;
+
+// Define a custom "double factorial" operator
+class DoubleFactorial implements OperatorInterface {
+    public function getPrecedence(): int { return 10; }
+    public function getAssociativity(): Associativity { return Associativity::Left; }
+    public function getType(): OperatorType { return OperatorType::UnaryPostfix; }
+    public function apply(OperandInterface ...$operands): OperandInterface {
+        $val = $operands[0]->value();
+        $result = 1;
+        for ($i = $val; $i >= 1; $i -= 2) {
+            $result *= $i;
+        }
+        return new \Rpn\Operands\Number($result);
+    }
+}
+
+// Create a parser and add the new operator
+$parser = ShuntingYardParserBuilder::math()
+    ->addOperator('!!', new DoubleFactorial())
+    ->build();
+
+$evaluator = new Expression();
+
+$rpnStream = $parser->parse('5!!'); // 5 * 3 * 1
+echo $evaluator->evaluate($rpnStream); // Output: 15
 ```
 
 ### Supported Syntax
 
-The parser supports both standard ASCII and Unicode mathematical symbols:
+The default parser supports both standard ASCII and Unicode mathematical symbols:
 
 | Operation | ASCII | Unicode | Example |
 |-----------|-------|---------|---------|
 | Multiply | `*` | `×` | `3 × 4` |
 | Divide | `/` | `÷` | `10 ÷ 2` |
-| Power | `^` | - | `2 ^ 3` |
+| Power | `^`, `pow` | - | `2 ^ 3` |
 | Factorial | `!` | - | `5!` |
-| Square Root | `sqrt()` | `√` | `sqrt(16)` or `√16` |
+| Square Root | `sqrt` | `√` | `sqrt(16)` or `√16` |
 | Cube Root | - | `∛` | `∛27` |
 | Fourth Root | - | `∜` | `∜81` |
 
-## Architecture
-
-### Core Components
-
-#### `Expression` Class
-Evaluates an RPN expression using a stack-based algorithm:
-1. Push operands onto the stack
-2. When an operator is encountered, pop operands, apply the operator, and push the result back
-3. The final stack value is the result
-
-#### `MathematicalStringParser` Class
-Converts infix notation to RPN using the **Shunting Yard algorithm**:
-1. Tokenizes the input string
-2. Handles operator precedence
-3. Manages parentheses
-4. Respects operator associativity (right-associative for power and functions)
-5. Handles unary operators (factorial, negation)
-
-#### Operator Classes
-- Binary operators: `Addition`, `Subtraction`, `Multiplication`, `Division`, `Power`
-- Unary operators: `Sqrt`, `Log`, `Exp`, `CubeRoot`, `FourthRoot`, `Factorial`
-
-#### Operand Classes
-- `Number` - Represents numeric values
-
-### Operator Precedence
-
-From highest to lowest:
-1. **Factorial** (`!`) - precedence 5
-2. **Unary functions** (sqrt, log, exp, ∛, ∜) - precedence 4
-3. **Power** (`^`) - precedence 3 (right-associative)
-4. **Multiplication/Division** (`*`, `/`) - precedence 2
-5. **Addition/Subtraction** (`+`, `-`) - precedence 1
-
 ## Development
+
+Feel free to contribute! Fork the repository and submit a pull request.
 
 ### Running Tests
 
@@ -153,55 +147,30 @@ composer test
 # Code style
 ./vendor/bin/phpcs
 
-# Parallel linting
-./vendor/bin/parallel-lint src tests
-```
-
-## Examples
-
-```php
-use Rpn\Parsers\MathematicalStringParser;
-use Rpn\Expression;
-
-// Example 1: Basic arithmetic
-$expr = new MathematicalStringParser('(3 + 4) * 2');
-echo new Expression(...$expr->parse())->evaluate(); // 14
-
-// Example 2: Complex expression with functions
-$expr = new MathematicalStringParser('sqrt(16) + log(2.718281828)');
-echo new Expression(...$expr->parse())->evaluate(); // ~5
-
-// Example 3: Power operations
-$expr = new MathematicalStringParser('2 ^ 3 ^ 2'); // Right-associative: 2^(3^2) = 2^9 = 512
-echo new Expression(...$expr->parse())->evaluate(); // 512
-
-// Example 4: Factorial
-$expr = new MathematicalStringParser('5!');
-echo new Expression(...$expr->parse())->evaluate(); // 120
-
-// Example 5: Unary minus (negation)
-$expr = new MathematicalStringParser('-5 + 3');
-echo new Expression(...$expr->parse())->evaluate(); // -2
+# Fix code style issues
+./vendor/bin/phpcbf
 ```
 
 ## How It Works
 
-### Infix to RPN Conversion (Shunting Yard Algorithm)
+### 1. Parsing (Infix to RPN)
 
-Example: `3 + 4 * 2`
+The `ShuntingYardParser` converts an infix string like `3 + 4 * 2` into an `ExpressionPartsStream`.
 
-| Token | Action | Output | Operator Stack |
-|-------|--------|--------|-----------------|
-| `3` | Push to output | `3` | |
-| `+` | Push operator | `3` | `+` |
-| `4` | Push to output | `3 4` | `+` |
-| `*` | Higher precedence, push | `3 4` | `+ *` |
-| `2` | Push to output | `3 4 2` | `+ *` |
-| End | Pop all operators | `3 4 2 * +` | |
+| Token | Action | Output Stream (Conceptual) | Operator Stack |
+|-------|--------|----------------------------|----------------|
+| `3` | Add to stream | `[Number(3)]` | |
+| `+` | Push to stack | `[Number(3)]` | `[+]` |
+| `4` | Add to stream | `[Number(3), Number(4)]` | `[+]` |
+| `*` | Higher precedence, push | `[Number(3), Number(4)]` | `[+, *]` |
+| `2` | Add to stream | `[Number(3), Number(4), Number(2)]` | `[+, *]` |
+| End | Pop all operators | `[Number(3), Number(4), Number(2), *, +]` | |
 
-### RPN Evaluation
+### 2. Evaluation
 
-Expression: `3 4 2 * +`
+The `Expression::evaluate()` method iterates the `ExpressionPartsStream` and uses a stack to compute the result.
+
+Expression Stream: `[Number(3), Number(4), Number(2), *, +]`
 
 | Token | Stack After | Explanation |
 |-------|-------------|-------------|
@@ -213,40 +182,35 @@ Expression: `3 4 2 * +`
 
 ## Error Handling
 
-The library throws specific exceptions for error cases:
+The library throws specific, catchable exceptions for parsing and evaluation errors.
 
-- `UnknownFunctionException` - Thrown when an unknown function name is encountered
-- `UnknownTokenException` - Thrown when an invalid token is encountered
-
-Both exceptions extend `InvalidArgumentException`, so you can catch them individually or as a group.
+- `UnknownTokenException`: Thrown for an unrecognized symbol or function.
+- `InvalidExpressionException`: Thrown for syntax errors, like mismatched parentheses or not enough operands for an operator.
 
 Example:
 ```php
-use Rpn\Parsers\MathematicalStringParser;
+use Rpn\Parsers\ShuntingYardParserBuilder;
 use Rpn\Expression;
-use Rpn\Exceptions\UnknownFunctionException;
 use Rpn\Exceptions\UnknownTokenException;
 use Rpn\Exceptions\InvalidExpressionException;
 
-try {
-    $parser = new MathematicalStringParser('unknown_func()');
-    new Expression(...$parser->parse());
-} catch (UnknownFunctionException $e) {
-    echo $e->getMessage(); // "Unknown function: unknown_func"
-}
+$parser = ShuntingYardParserBuilder::math()->build();
+$evaluator = new Expression();
 
+// Catch an unknown token
 try {
-    $parser = new MathematicalStringParser('5 @@ 3');
-    new Expression(...$parser->parse());
+    $rpnStream = $parser->parse('5 @@ 3');
+    $evaluator->evaluate($rpnStream);
 } catch (UnknownTokenException $e) {
     echo $e->getMessage(); // "Unknown token: @"
 }
 
+// Catch an invalid expression (not enough operands)
 try {
-    $parser = new MathematicalStringParser('* 5 + 3');
-    new Expression(...$parser->parse());
-} catch (InvalidExpressionException: $e) {
-    echo $e->getMessage(); // Not enough operands.
+    $rpnStream = $parser->parse('* 5 + 3');
+    $evaluator->evaluate($rpnStream);
+} catch (InvalidExpressionException $e) {
+    echo $e->getMessage(); // "Not enough operands for operator."
 }
 ```
 
@@ -258,4 +222,4 @@ This library is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 Olexandr Mazur <alexandrmazur96@gmail.com>
 
-:star: Star us on GitHub — it motivates us a lot! 😀
+:star: Star this project on GitHub — it motivates me a lot!
