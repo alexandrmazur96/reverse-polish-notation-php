@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Rpn\Exceptions;
 
-use InvalidArgumentException;
+use Exception;
 
-final class InvalidOperatorArgumentException extends InvalidArgumentException
+final class InvalidOperatorArgumentException extends Exception
 {
 }

@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Rpn\Exceptions;
 
-use InvalidArgumentException;
+use Exception;
 
-final class UnknownFunctionException extends InvalidArgumentException
+final class UnknownFunctionException extends Exception
 {
 }
