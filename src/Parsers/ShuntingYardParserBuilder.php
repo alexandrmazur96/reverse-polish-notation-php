@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Rpn\Parsers;
 
-use Rpn\Operands\Resolvers\NumericOperandResolver;
+use Rpn\Operands\Resolvers\OperandResolver;
 use Rpn\Operands\Resolvers\OperandResolverInterface;
 use Rpn\Operators\Math\Addition;
 use Rpn\Operators\Math\CubeRoot;
@@ -61,7 +61,7 @@ readonly class ShuntingYardParserBuilder
 
         return new self(
             operatorRegistry: $operatorRegistry,
-            operandResolver: new NumericOperandResolver()
+            operandResolver: new OperandResolver()
         );
     }
 
@@ -87,7 +87,7 @@ readonly class ShuntingYardParserBuilder
         return new ShuntingYardParser(
             $this->operatorRegistry,
             $this->tokenizer ?? new StringTokenizer($this->operatorRegistry->getSymbolicTokens()),
-            $this->operandResolver ?? new NumericOperandResolver()
+            $this->operandResolver ?? new OperandResolver()
         );
     }
 }
