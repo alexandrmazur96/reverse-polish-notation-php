@@ -6,8 +6,10 @@ namespace Rpn\Tests;
 
 use Rpn\Exceptions\InvalidExpressionException;
 use Rpn\Exceptions\InvalidOperatorArgumentException;
+use Rpn\Exceptions\UndefinedVariableException;
 use Rpn\Expression;
 use Rpn\Operands\Number;
+use Rpn\Operands\Variable;
 use Rpn\Operators\Math\Factorial;
 use Rpn\Operators\Math\Multiplication;
 use Rpn\Stream\ExpressionPartsStream;
@@ -32,7 +34,43 @@ final class ExpressionTest extends TestCase
         }
     }
 
-    /** @throws InvalidOperatorArgumentException */
+    public function testExpressionWithVariable(): void
+    {
+        $stream = ExpressionPartsStream::of(
+            [
+                new Number(5),
+                new Variable(":x"),
+                new Multiplication(),
+            ]
+        );
+
+        $expression = new Expression();
+
+        try {
+            $this->assertEquals(25, $expression->evaluate($stream, [':x' => new Number(5)])->value());
+        } catch (Throwable $e) {
+            $this->fail("Failed to evaluate expression with variable: " . $e->getMessage());
+        }
+    }
+
+    /** @throws InvalidOperatorArgumentException|InvalidExpressionException */
+    public function testExpressionUndefinedVariable(): void
+    {
+        $stream = ExpressionPartsStream::of(
+            [
+                new Number(5),
+                new Variable(":x"),
+                new Multiplication(),
+            ]
+        );
+
+        $expression = new Expression();
+
+        $this->expectException(UndefinedVariableException::class);
+        $this->assertEquals(25, $expression->evaluate($stream)->value());
+    }
+
+    /** @throws InvalidOperatorArgumentException|UndefinedVariableException */
     public function testTooManyOperandsRemaining(): void
     {
         $this->expectException(InvalidExpressionException::class);
@@ -42,7 +80,7 @@ final class ExpressionTest extends TestCase
         (new Expression())->evaluate($stream);
     }
 
-    /** @throws InvalidOperatorArgumentException */
+    /** @throws InvalidOperatorArgumentException|UndefinedVariableException */
     public function testNotEnoughOperandsForBinaryOperation(): void
     {
         $this->expectException(InvalidExpressionException::class);
@@ -52,7 +90,7 @@ final class ExpressionTest extends TestCase
         (new Expression())->evaluate($stream);
     }
 
-    /** @throws InvalidOperatorArgumentException */
+    /** @throws InvalidOperatorArgumentException|UndefinedVariableException */
     public function testNotEnoughOperandsForUnaryOperation(): void
     {
         $this->expectException(InvalidExpressionException::class);

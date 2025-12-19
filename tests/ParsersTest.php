@@ -11,7 +11,7 @@ use Rpn\Exceptions\InvalidOperatorArgumentException;
 use Rpn\Exceptions\UnknownFunctionException;
 use Rpn\Exceptions\UnknownTokenException;
 use Rpn\Expression;
-use Rpn\Operands\Resolvers\NumericOperandResolver;
+use Rpn\Operands\Resolvers\OperandResolver;
 use Rpn\Operators\Math\Addition;
 use Rpn\Operators\Math\CubeRoot;
 use Rpn\Operators\Math\Division;
@@ -58,7 +58,7 @@ final class ParsersTest extends TestCase
         $parser = new ShuntingYardParser(
             $registry,
             new StringTokenizer($registry->getSymbolicTokens()),
-            new NumericOperandResolver()
+            new OperandResolver()
         );
 
         try {
