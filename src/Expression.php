@@ -7,21 +7,34 @@ namespace Rpn;
 use Rpn\Enum\OperatorType;
 use Rpn\Exceptions\InvalidExpressionException;
 use Rpn\Exceptions\InvalidOperatorArgumentException;
+use Rpn\Exceptions\UndefinedVariableException;
 use Rpn\Operands\OperandInterface;
+use Rpn\Operands\Variable;
 use Rpn\Operators\OperatorInterface;
 use Rpn\Stream\ExpressionPartsStream;
 use SplStack;
 
 readonly class Expression
 {
-    /** @throws InvalidExpressionException|InvalidOperatorArgumentException */
-    public function evaluate(ExpressionPartsStream $stream): OperandInterface
+    /**
+     * @param array<string, OperandInterface> $variables
+     * @throws InvalidExpressionException|UndefinedVariableException|InvalidOperatorArgumentException
+     */
+    public function evaluate(ExpressionPartsStream $stream, array $variables = []): OperandInterface
     {
         /** @var SplStack<OperandInterface> $operandsStack */
         $operandsStack = new SplStack();
 
         foreach ($stream as $part) {
             if ($part instanceof OperandInterface) {
+                if ($part instanceof Variable) {
+                    $varName = $part->value();
+                    if (!isset($variables[$varName])) {
+                        throw new UndefinedVariableException("Undefined variable: $varName");
+                    }
+                    $part = $variables[$varName];
+                }
+
                 $operandsStack->push($part);
                 continue;
             }
