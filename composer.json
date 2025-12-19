@@ -38,6 +38,12 @@
         }
     },
     "scripts": {
+        "checks": [
+            "@psalm",
+            "@phpcs",
+            "@lint",
+            "@test"
+        ],
         "test": "phpunit --colors=always",
         "psalm": "psalm --show-info=true --no-cache",
         "phpcs": "phpcs src/ tests/",
