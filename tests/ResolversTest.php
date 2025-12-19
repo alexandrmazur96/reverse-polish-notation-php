@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Rpn\Tests;
 
+use Override;
 use Rpn\Operands\Number;
 use Rpn\Operands\Resolvers\OperandResolver;
 use Rpn\Operands\Variable;
@@ -12,12 +13,14 @@ final class ResolversTest extends TestCase
 {
     private OperandResolver $resolver;
 
+    #[Override]
     protected function setUp(): void
     {
         parent::setUp();
         $this->resolver = new OperandResolver();
     }
 
+    #[Override]
     protected function tearDown(): void
     {
         unset($this->resolver);
