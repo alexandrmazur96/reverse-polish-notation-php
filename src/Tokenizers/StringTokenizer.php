@@ -21,13 +21,18 @@ readonly class StringTokenizer implements TokenizerInterface
     /** @param string[] $symbols Custom operator symbols (e.g. ['+', '!=']) */
     public function __construct(array $symbols)
     {
-        usort($symbols, static fn(string $a, string $b) => strlen($b) <=> strlen($a));
+        usort($symbols, static fn(string $a, string $b): int => strlen($b) <=> strlen($a));
 
-        $escaped = array_map(static fn(string $s) => preg_quote($s, '/'), $symbols);
+        $escaped = array_map(static fn(string $s): string => preg_quote($s, '/'), $symbols);
         $symbolGroup = join('|', $escaped);
 
-        // Words | Numbers | Custom Symbols | Structure | Catch-all
-        $this->regex = "/[a-zA-Z_]+|\d+(?:\.\d+)?|$symbolGroup|[(),]|\S/u";
+        // 1. :[a-zA-Z_]\w*   -> Variables (e.g. :weight, :x_1) - MUST BE FIRST
+        // 2. [a-zA-Z_]+      -> Words (Functions like min, max)
+        // 3. \d+(?:\.\d+)?   -> Numbers
+        // 4. $symbolGroup    -> Operators
+        // 5. Structure       -> ( ) ,
+        // 6. \S              -> Catch-all
+        $this->regex = "/(:[a-zA-Z_]\w*)|[a-zA-Z_]+|\d+(?:\.\d+)?|$symbolGroup|[(),]|\S/u";
     }
 
     /** @return iterable<int, string> */
