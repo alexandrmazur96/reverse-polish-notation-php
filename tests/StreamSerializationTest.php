@@ -44,6 +44,10 @@ final class StreamSerializationTest extends TestCase
         $this->assertEquals(610, $expression->evaluate($unserializedStream)->value());
     }
 
+    /**
+     * @throws InvalidExpressionException
+     * @throws InvalidOperatorArgumentException
+     */
     public function testSerializeGeneratorNotDrained(): void
     {
         $streamSource = static function (): Generator {

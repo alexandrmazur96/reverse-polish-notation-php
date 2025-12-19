@@ -19,6 +19,8 @@ use Rpn\Operators\Math\Exp;
 use Rpn\Operators\Math\Factorial;
 use Rpn\Operators\Math\FourthRoot;
 use Rpn\Operators\Math\Log;
+use Rpn\Operators\Math\Max;
+use Rpn\Operators\Math\Min;
 use Rpn\Operators\Math\Multiplication;
 use Rpn\Operators\Math\Negation;
 use Rpn\Operators\Math\Percent;
@@ -50,6 +52,8 @@ final class ParsersTest extends TestCase
         $registry->add('log', new Log());
         $registry->add('exp', new Exp());
         $registry->add('%', new Percent());
+        $registry->add('min', new Min());
+        $registry->add('max', new Max());
 
         $parser = new ShuntingYardParser(
             $registry,
@@ -226,5 +230,14 @@ final class ParsersTest extends TestCase
         // --- Nested Expression ---
         yield 'nested-1' => ['sqrt(7 * 7 / 7 * 7)', 7];
         yield 'nested-2' => ['pow(2 * 5 + 25, 2)', 1225];
+        yield 'nested-3' => ['max(3 * 52.5, 200 + min(150, 75 * 3))', 350];
+
+        // --- Min/Max Functions ---
+        yield 'min-1' => ['min(3, 5)', 3];
+        yield 'min-2' => ['min(10, 2 + 5)', 7];
+        yield 'min-3' => ['min(50%, 0.6)', 0.5];
+        yield 'min-4' => ['min(3 + 2, 4 + 1)', 5];
+        yield 'max-1' => ['min(3, min(5, 2))', 2];
+        yield 'max-2' => ['min(10, 2 + min(8, 3))', 5];
     }
 }

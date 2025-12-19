@@ -13,6 +13,8 @@ use Rpn\Operators\Math\Exp;
 use Rpn\Operators\Math\Factorial;
 use Rpn\Operators\Math\FourthRoot;
 use Rpn\Operators\Math\Log;
+use Rpn\Operators\Math\Max;
+use Rpn\Operators\Math\Min;
 use Rpn\Operators\Math\Multiplication;
 use Rpn\Operators\Math\Negation;
 use Rpn\Operators\Math\Percent;
@@ -54,6 +56,8 @@ readonly class ShuntingYardParserBuilder
         $operatorRegistry->add('log', new Log());
         $operatorRegistry->add('exp', new Exp());
         $operatorRegistry->add('%', new Percent());
+        $operatorRegistry->add('min', new Min());
+        $operatorRegistry->add('max', new Max());
 
         return new self(
             operatorRegistry: $operatorRegistry,

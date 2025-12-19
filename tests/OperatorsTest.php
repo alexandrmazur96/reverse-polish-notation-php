@@ -20,6 +20,8 @@ use Rpn\Operators\Math\Exp;
 use Rpn\Operators\Math\Factorial;
 use Rpn\Operators\Math\FourthRoot;
 use Rpn\Operators\Math\Log;
+use Rpn\Operators\Math\Max;
+use Rpn\Operators\Math\Min;
 use Rpn\Operators\Math\Multiplication;
 use Rpn\Operators\Math\Negation;
 use Rpn\Operators\Math\Percent;
@@ -230,6 +232,22 @@ final class OperatorsTest extends TestCase
         $this->assertEquals(1, $result->value());
     }
 
+    /** @throws InvalidOperatorArgumentException */
+    public function testMin(): void
+    {
+        $operator = new Min();
+        $result = $operator->apply(new Number(3), new Number(5));
+        $this->assertEquals(3, $result->value());
+    }
+
+    /** @throws InvalidOperatorArgumentException */
+    public function testMax(): void
+    {
+        $operator = new Max();
+        $result = $operator->apply(new Number(3), new Number(5));
+        $this->assertEquals(5, $result->value());
+    }
+
     public function testAdditionWrongArgs(): void
     {
         $this->expectException(InvalidOperatorArgumentException::class);
@@ -308,6 +326,18 @@ final class OperatorsTest extends TestCase
         (new Percent())->apply(new Number(1), new Number(2));
     }
 
+    public function testMinWrongArgs(): void
+    {
+        $this->expectException(InvalidOperatorArgumentException::class);
+        (new Min())->apply(new Number(1));
+    }
+
+    public function testMaxWrongArgs(): void
+    {
+        $this->expectException(InvalidOperatorArgumentException::class);
+        (new Max())->apply(new Number(1));
+    }
+
     /** @param class-string<OperatorInterface> $class */
     #[DataProvider('operatorMetaProvider')]
     public function testOperatorMeta(
@@ -338,6 +368,8 @@ final class OperatorsTest extends TestCase
         yield 'Log' => [Log::class, 4, Associativity::None, OperatorType::Function];
         yield 'Exp' => [Exp::class, 4, Associativity::None, OperatorType::Function];
         yield 'Percent' => [Percent::class, 5, Associativity::Left, OperatorType::UnaryPostfix];
+        yield 'Min' => [Min::class, 1, Associativity::None, OperatorType::Binary];
+        yield 'Max' => [Max::class, 1, Associativity::None, OperatorType::Binary];
     }
 
     /**
@@ -381,5 +413,7 @@ final class OperatorsTest extends TestCase
         yield 'Log' => [Log::class, 1];
         yield 'Exp' => [Exp::class, 1];
         yield 'Percent' => [Percent::class, 1];
+        yield 'Min' => [Min::class, 2];
+        yield 'Max' => [Max::class, 2];
     }
 }
