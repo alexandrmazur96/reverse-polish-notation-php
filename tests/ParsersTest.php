@@ -8,6 +8,8 @@ use Generator;
 use PHPUnit\Framework\Attributes\DataProvider;
 use Rpn\Exceptions\InvalidExpressionException;
 use Rpn\Exceptions\InvalidOperatorArgumentException;
+use Rpn\Exceptions\InvalidVariableException;
+use Rpn\Exceptions\UndefinedVariableException;
 use Rpn\Exceptions\UnknownFunctionException;
 use Rpn\Exceptions\UnknownTokenException;
 use Rpn\Expression;
@@ -73,9 +75,12 @@ final class ParsersTest extends TestCase
     }
 
     /**
+     * @throws InvalidExpressionException
      * @throws InvalidOperatorArgumentException
-     * @throws UnknownTokenException
+     * @throws InvalidVariableException
+     * @throws UndefinedVariableException
      * @throws UnknownFunctionException
+     * @throws UnknownTokenException
      */
     public function testMismatchedParentheses(): void
     {
@@ -89,7 +94,10 @@ final class ParsersTest extends TestCase
     /**
      * @throws InvalidExpressionException
      * @throws InvalidOperatorArgumentException
+     * @throws InvalidVariableException
+     * @throws UndefinedVariableException
      * @throws UnknownFunctionException
+     * @throws UnknownTokenException
      */
     public function testUnknownToken(): void
     {
@@ -101,9 +109,12 @@ final class ParsersTest extends TestCase
     }
 
     /**
+     * @throws InvalidExpressionException
      * @throws InvalidOperatorArgumentException
-     * @throws UnknownTokenException
+     * @throws InvalidVariableException
+     * @throws UndefinedVariableException
      * @throws UnknownFunctionException
+     * @throws UnknownTokenException
      */
     public function testExpressionEndingWithOpenParenthesis(): void
     {
@@ -124,9 +135,12 @@ final class ParsersTest extends TestCase
     }
 
     /**
+     * @throws InvalidExpressionException
      * @throws InvalidOperatorArgumentException
-     * @throws UnknownTokenException
      * @throws UnknownFunctionException
+     * @throws UnknownTokenException
+     * @throws InvalidVariableException
+     * @throws UndefinedVariableException
      */
     public function testCommaWithEmptyOperatorStack(): void
     {
@@ -145,10 +159,12 @@ final class ParsersTest extends TestCase
     }
 
     /**
-     * @throws InvalidOperatorArgumentException
-     * @throws UnknownTokenException
-     * @throws UnknownFunctionException
      * @throws InvalidExpressionException
+     * @throws InvalidOperatorArgumentException
+     * @throws InvalidVariableException
+     * @throws UndefinedVariableException
+     * @throws UnknownFunctionException
+     * @throws UnknownTokenException
      */
     public function testMismatchedClosingParenthesis(): void
     {

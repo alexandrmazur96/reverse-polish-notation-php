@@ -6,6 +6,7 @@ namespace Rpn\Tests;
 
 use Rpn\Exceptions\InvalidExpressionException;
 use Rpn\Exceptions\InvalidOperatorArgumentException;
+use Rpn\Exceptions\InvalidVariableException;
 use Rpn\Exceptions\UndefinedVariableException;
 use Rpn\Expression;
 use Rpn\Operands\Number;
@@ -53,7 +54,7 @@ final class ExpressionTest extends TestCase
         }
     }
 
-    /** @throws InvalidOperatorArgumentException|InvalidExpressionException */
+    /** @throws InvalidOperatorArgumentException|UndefinedVariableException|InvalidVariableException */
     public function testExpressionUndefinedVariable(): void
     {
         $stream = ExpressionPartsStream::of(
@@ -70,7 +71,7 @@ final class ExpressionTest extends TestCase
         $this->assertEquals(25, $expression->evaluate($stream)->value());
     }
 
-    /** @throws InvalidOperatorArgumentException|UndefinedVariableException */
+    /** @throws InvalidOperatorArgumentException|UndefinedVariableException|InvalidVariableException */
     public function testTooManyOperandsRemaining(): void
     {
         $this->expectException(InvalidExpressionException::class);
@@ -80,7 +81,7 @@ final class ExpressionTest extends TestCase
         (new Expression())->evaluate($stream);
     }
 
-    /** @throws InvalidOperatorArgumentException|UndefinedVariableException */
+    /** @throws InvalidOperatorArgumentException|UndefinedVariableException|InvalidVariableException */
     public function testNotEnoughOperandsForBinaryOperation(): void
     {
         $this->expectException(InvalidExpressionException::class);
@@ -90,7 +91,7 @@ final class ExpressionTest extends TestCase
         (new Expression())->evaluate($stream);
     }
 
-    /** @throws InvalidOperatorArgumentException|UndefinedVariableException */
+    /** @throws InvalidOperatorArgumentException|UndefinedVariableException|InvalidVariableException */
     public function testNotEnoughOperandsForUnaryOperation(): void
     {
         $this->expectException(InvalidExpressionException::class);

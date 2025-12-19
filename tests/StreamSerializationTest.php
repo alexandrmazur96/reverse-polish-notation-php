@@ -7,6 +7,8 @@ namespace Rpn\Tests;
 use Generator;
 use Rpn\Exceptions\InvalidExpressionException;
 use Rpn\Exceptions\InvalidOperatorArgumentException;
+use Rpn\Exceptions\InvalidVariableException;
+use Rpn\Exceptions\UndefinedVariableException;
 use Rpn\Expression;
 use Rpn\Operands\Number;
 use Rpn\Operators\Math\Addition;
@@ -21,6 +23,8 @@ final class StreamSerializationTest extends TestCase
     /**
      * @throws InvalidExpressionException
      * @throws InvalidOperatorArgumentException
+     * @throws InvalidVariableException
+     * @throws UndefinedVariableException
      */
     public function testSerialize(): void
     {
@@ -47,6 +51,8 @@ final class StreamSerializationTest extends TestCase
     /**
      * @throws InvalidExpressionException
      * @throws InvalidOperatorArgumentException
+     * @throws InvalidVariableException
+     * @throws UndefinedVariableException
      */
     public function testSerializeGeneratorNotDrained(): void
     {
