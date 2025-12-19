@@ -28,14 +28,16 @@ composer require php-rpn/rpn
 - ✅ **Support for standard operators:**
   - Binary operators: `+`, `-`, `*` (×), `/` (÷)
   - Unary operators: `-` (negation), `!` (factorial)
-  - Power operator: `^`
 - ✅ **Support for mathematical functions:**
-  - `sqrt()` - Square root
-  - `pow()` - Power function
+  - `sqrt()`|`√` - Square root
+  - `pow()`|`^` - Power function
   - `log()` - Natural logarithm
   - `exp()` - Exponential function
+  - `min()` - Minimum of two values
+  - `max()` - Maximum of two values
   - `∛` (cube root)
   - `∜` (fourth root)
+- ✅ **Variable support** for dynamic expressions.
 - ✅ **Proper operator associativity** handling.
 - ✅ **Type-safe PHP 8.3+** with strict types.
 
@@ -74,9 +76,26 @@ $rpnStream = $parser->parse('sqrt(16) + pow(2, 3)');
 echo $evaluator->evaluate($rpnStream)->value(); // Output: 12 (4 + 8)
 ```
 
-### Customizing the Parser
+### Using Variables
 
-You can add your own operators or change the behavior of existing ones.
+```php
+use Rpn\Expression;
+use Rpn\Parsers\ShuntingYardParserBuilder;
+
+$parser = ShuntingYardParserBuilder::math()->build();
+$evaluator = new Expression();
+
+// Variables should start with a colon (:)
+
+// Parse an expression with variables
+$rpnStream = $parser->parse('(:a * :b + :c) * 2');
+
+$evaluator->evaluate($rpnStream, [':a' => 3, ':b' => 4, ':c' => 5])->value(); // Output: 34
+```
+
+### Customization
+
+You can easily add your own custom operators if you need to. Just implement the `OperatorInterface` and register it with the parser builder:
 
 ```php
 use Rpn\Expression;
@@ -116,39 +135,31 @@ echo $evaluator->evaluate($rpnStream)->value(); // Output: 15
 
 The default parser supports both standard ASCII and Unicode mathematical symbols:
 
-| Operation | ASCII | Unicode | Example |
-|-----------|-------|---------|---------|
-| Multiply | `*` | `×` | `3 × 4` |
-| Divide | `/` | `÷` | `10 ÷ 2` |
-| Power | `^`, `pow` | - | `2 ^ 3` |
-| Factorial | `!` | - | `5!` |
-| Square Root | `sqrt` | `√` | `sqrt(16)` or `√16` |
-| Cube Root | - | `∛` | `∛27` |
-| Fourth Root | - | `∜` | `∜81` |
+| Operation            | ASCII       | Unicode | Example               |
+|----------------------|-------------|---------|-----------------------|
+| Addition             | `+`         | -       | `1 + 7`               |
+| Subtraction          | `-`         | -       | `5 - 49`              |
+| Multiply             | `*`         | `×`     | `3 × 4`               |
+| Divide               | `/`         | `÷`     | `10 ÷ 2`              |
+| Power                | `^`, `pow`  | -       | `2 ^ 3`               |
+| Factorial            | `!`         | -       | `5!`                  |
+| Square Root          | `sqrt`      | `√`     | `sqrt(16)` or `√16`   |
+| Cube Root            | -           | `∛`     | `∛27`                 |
+| Fourth Root          | -           | `∜`     | `∜81`                 |
+| Exponential function | `exp`       | -       | `exp(3)`              |
+| Min                  | `min`       | -       | `min(3, :x)`          |
+| Max                  | `min`       | -       | `max(7, :x)`          |
+| Log                  | `log`       | -       | `log(10)`             |
+| Percent              | `%`         | -       | `5%`                  |
+| Negation             | `-`         | -       | `-3`                  |
 
 ## Development
 
 Feel free to contribute! Fork the repository and submit a pull request.
-
-### Running Tests
-
-```bash
-composer test
-# or
-./vendor/bin/phpunit
-```
-
-### Code Quality Checks
+Just make sure everything satisfies the coding standards and all tests pass.
 
 ```bash
-# Static analysis
-./vendor/bin/psalm
-
-# Code style
-./vendor/bin/phpcs
-
-# Fix code style issues
-./vendor/bin/phpcbf
+composer checks
 ```
 
 ## How It Works
@@ -179,40 +190,6 @@ Expression Stream: `[Number(3), Number(4), Number(2), *, +]`
 | `2` | `[3, 4, 2]` | Push 2 |
 | `*` | `[3, 8]` | Pop 4, 2; compute 4*2=8; push 8 |
 | `+` | `[11]` | Pop 3, 8; compute 3+8=11; push 11 |
-
-## Error Handling
-
-The library throws specific, catchable exceptions for parsing and evaluation errors.
-
-- `UnknownTokenException`: Thrown for an unrecognized symbol or function.
-- `InvalidExpressionException`: Thrown for syntax errors, like mismatched parentheses or not enough operands for an operator.
-
-Example:
-```php
-use Rpn\Parsers\ShuntingYardParserBuilder;
-use Rpn\Expression;
-use Rpn\Exceptions\UnknownTokenException;
-use Rpn\Exceptions\InvalidExpressionException;
-
-$parser = ShuntingYardParserBuilder::math()->build();
-$evaluator = new Expression();
-
-// Catch an unknown token
-try {
-    $rpnStream = $parser->parse('5 @@ 3');
-    $evaluator->evaluate($rpnStream)->value();
-} catch (UnknownTokenException $e) {
-    echo $e->getMessage(); // "Unknown token: @"
-}
-
-// Catch an invalid expression (not enough operands)
-try {
-    $rpnStream = $parser->parse('* 5 + 3');
-    $evaluator->evaluate($rpnStream)->value();
-} catch (InvalidExpressionException $e) {
-    echo $e->getMessage(); // "Not enough operands for operator."
-}
-```
 
 ## License
 
