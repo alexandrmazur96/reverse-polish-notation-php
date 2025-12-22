@@ -57,7 +57,7 @@ final class ExpressionPartsStream implements IteratorAggregate
     public function __serialize(): array
     {
         if (empty($this->buffer)) {
-            $this->buffer = iterator_to_array($this->source, true);
+            $this->buffer = iterator_to_array($this->source, false);
         }
 
         return ['source' => $this->buffer];
