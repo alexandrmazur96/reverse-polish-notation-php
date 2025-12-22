@@ -32,13 +32,17 @@ use Rpn\Operators\Math\Subtraction;
 use Rpn\Operators\OperatorRegistry;
 use Rpn\Parsers\ShuntingYardParser;
 use Rpn\Parsers\ShuntingYardParserBuilder;
+use Rpn\Stream\ExpressionPartsStream;
 use Rpn\Tokenizers\StringTokenizer;
 use Throwable;
+
+use function serialize;
+use function unserialize;
 
 final class ParsersTest extends TestCase
 {
     #[DataProvider('mathStringsProvider')]
-    public function testShuntingYardParser(string $mathStr, float $expected): void
+    public function testShuntingYardParserManuallyCreated(string $mathStr, float $expected): void
     {
         $registry = new OperatorRegistry();
         $registry->add('+', new Addition());
@@ -67,6 +71,47 @@ final class ParsersTest extends TestCase
             $this->assertEqualsWithDelta(
                 $expected,
                 (new Expression())->evaluate($parser->parse($mathStr))->value(),
+                0.0001
+            );
+        } catch (Throwable $e) {
+            $this->fail("Failed to evaluate expression for '$mathStr': " . $e->getMessage());
+        }
+    }
+
+    #[DataProvider('mathStringsProvider')]
+    public function testShuntingYardParserThroughBuilder(string $mathStr, float $expected): void
+    {
+        $parser = ShuntingYardParserBuilder::math()->build();
+
+        try {
+            $this->assertEqualsWithDelta(
+                $expected,
+                (new Expression())->evaluate($parser->parse($mathStr))->value(),
+                0.0001
+            );
+        } catch (Throwable $e) {
+            $this->fail("Failed to evaluate expression for '$mathStr': " . $e->getMessage());
+        }
+    }
+
+    #[DataProvider('mathStringsProvider')]
+    public function testShuntingYardParserSerialized(string $mathStr, float $expected): void
+    {
+        $parser = ShuntingYardParserBuilder::math()->build();
+
+        try {
+            $streamSerialized = serialize($parser->parse($mathStr));
+        } catch (Throwable $e) {
+            $this->fail("Failed to serialize expression for '$mathStr': " . $e->getMessage());
+        }
+
+        /** @var ExpressionPartsStream $streamUnserialized */
+        $streamUnserialized = unserialize($streamSerialized, ['allowed_classes' => true]);
+
+        try {
+            $this->assertEqualsWithDelta(
+                $expected,
+                (new Expression())->evaluate($streamUnserialized)->value(),
                 0.0001
             );
         } catch (Throwable $e) {
